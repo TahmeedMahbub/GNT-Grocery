@@ -6,7 +6,7 @@
 <center>
     <h2>Product Selling Page</h2>
 
-    <table>
+    <table class="table table-striped" style="width: 550px;">
 
     <form action="{{route('sellProductSub')}}" method="post">
     {{@csrf_field()}}

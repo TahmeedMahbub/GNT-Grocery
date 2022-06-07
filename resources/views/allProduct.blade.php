@@ -9,9 +9,9 @@
     <table class="table table-striped">
         <?php $sl=0; ?>
         <tr style="background-color: Lavender;">
-            <th>ID</th>
             <th>SL</th>
             <th>NAME</th>
+            <th>ID</th>
             <th>SKU</th>
             <th>STOCK</th>
             <th>PURCHASE PRICE</th>
@@ -21,9 +21,9 @@
 
         @foreach ($products as $product)
         <tr>
-            <td> {{$product->id}} </td>
             <td> <?php $sl++; echo $sl; ?> </td>
             <td> {{$product -> name}} </td>
+            <td> {{$product->id}} </td>
             <td> {{$product -> sku}} </td>
             <td> {{$product -> stock}} </td>
             <td> {{$product -> purchase_price}} </td>

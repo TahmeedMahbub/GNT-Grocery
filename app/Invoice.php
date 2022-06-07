@@ -6,5 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    public $timestamps = false;
+
+    public function soldItems()
+    {
+        return $this->hasMany('App\SoldItem');
+    }
+
 }

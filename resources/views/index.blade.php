@@ -24,6 +24,9 @@
                 <a class="nav-link" href="{{route('sellProduct')}}">Sell Product</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="{{route('invoices')}}">Invoices</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="{{route('restockProduct')}}">Restock Product</a>
             </li>
             <li class="nav-item">

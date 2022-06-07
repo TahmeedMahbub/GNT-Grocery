@@ -21,6 +21,8 @@ Route::post ('/addProduct', 'GroceryController@addProductSub')->name('addProduct
 Route::get ('/sellProduct', 'GroceryController@sellProduct')->name('sellProduct');
 Route::post ('/sellProduct', 'GroceryController@sellProductSub')->name('sellProductSub');
 Route::post ('/sellProductConfirm', 'GroceryController@sellProductConfirm')->name('sellProductConfirm');
+Route::get ('/invoices', 'GroceryController@invoices')->name('invoices');
+Route::get ('/invoice-details/{id}', 'GroceryController@invoicesDetails')->name('invoice.details');
 Route::get ('/invoiceView', 'GroceryController@invoiceView')->name('invoiceView');
 Route::get ('/invoiceView/{id}', 'GroceryController@invoiceViewId')->name('invoiceViewId');
 

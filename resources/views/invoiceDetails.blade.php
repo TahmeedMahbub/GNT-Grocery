@@ -4,7 +4,7 @@
 <br><br>
 
 
-    <h2>Invoice No#{{$invoice_success -> id}}</h2>
+    <h2>Invoice No#{{$invoice -> id}}</h2>
 
     @if(Session::has('message'))
         @if(Session::get('alert') == TRUE)
@@ -29,9 +29,9 @@
 
     <?php $total=0; ?>
 
-    @foreach ($SoldItem_success as $sold)
-    @if ($sold -> invoice_id == $invoice_success->id)
-        @foreach ($product_success as $product)
+    @foreach ($sold_items as $sold)
+    @if ($sold -> invoice_id == $invoice->id)
+        @foreach ($products as $product)
         @if ($sold -> product_id == $product->id)
             <tr>
                 <td> {{$product->name}}</td>
@@ -51,29 +51,9 @@
         <th> {{$total}} Taka</th>
     </tr>
 
-    @if(isset($invoice_success->total))
 
-    <h3>Hello, {{$invoice_success->customer_name}}</h3>
+    <h3>Hello, {{$invoice->customer_name}}</h3>
 
-    @else
-        
-    <tr>
-        <form action="{{route('sellProductConfirm')}}" method="post"> <center>
-            {{@csrf_field()}}
-            Name: <input type="text" name="cus_name" placeholder="Enter Customer's Name">&emsp;&emsp;&emsp;&emsp;
-            Email: <input type="text" name="cus_mail" placeholder="Enter Customer's Email">&emsp;&emsp;&emsp;&emsp;
-            <b>Payment Method</b>&emsp;&emsp;
-            
-            <input type="radio" name="pay_method" value="card">Card
-            <input type="radio" name="pay_method" value="cash">Cash 
-            &emsp;&emsp;&emsp;&emsp;
-
-            <input type="hidden" name="invoice_id" value="{{$sold -> invoice_id}}">
-            <input type="hidden" name="invoice_total" value="{{$total}}">
-            <input type="Submit">
-        </center> </form>
-    </tr>
-    @endif
     
     </tbody>
     </table>
