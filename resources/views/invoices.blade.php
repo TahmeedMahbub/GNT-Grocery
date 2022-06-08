@@ -1,11 +1,9 @@
 @extends('index')
 @section('content')
 
-<br><br>
+<h2><center>Invoice List</center></h2><hr>
 
-<table class="table">
-
-
+<table class="table table-bordered table-hover table-striped">
     <thead class="thead-dark">
         <tr>
             <th>Inovice Number</th>
@@ -13,18 +11,41 @@
             <th>Customer's Email</th>
             <th>Total</th>
             <th>Payment Method</th>
-            <th>Time & Date</th>
+            <th>Date & Time</th>
         </tr>
     </thead>
     <tbody>
         @foreach ($invoices as $invoice)
-        <tr>
-            <td><a href="{{route('invoice.details', $invoice->id)}}"> {{$invoice->id}} </a></td>
-            <td>{{$invoice->customer_name}}</td>
-            <td>{{$invoice->customer_email}}</td>
+        <tr class="clickable" 
+        onclick="window.location='{{route('invoice.details', $invoice->id)}}'"
+        onMouseOver="this.style.backgroundColor='#C0C0C0'" 
+        onMouseOut="this.style.backgroundColor='#FFFFFF'">
+
+            <td>GNT{{$invoice->id}}</td>
+            <td>
+                @if($invoice->customer_name == NULL)
+                    Not Inserted!
+                @else
+                    {{ $invoice->customer_name }}
+                @endif
+            </td>
+            <td>
+                @if($invoice->customer_email == NULL)
+                    Not Inserted!
+                @else
+                    {{ $invoice->customer_email }}
+                @endif
+            </td>
             <td>{{$invoice->total}} Taka</td>
-            <td>{{$invoice->payment_method}}</td>
-            <td>{{$invoice->date}}</td>
+            <td>
+                @if($invoice->payment_method == NULL)
+                    Not Defined!
+                @else
+                    {{ $invoice->payment_method }}
+                @endif
+            </td>
+            <td>{{ date_format(date_create($invoice->created_at), "d/M/Y H:i:s") }}</td>
+            {{-- {{date_format(date_create($invoice->date), "d/M/Y H:i:s")}} --}}
         </tr>
         @endforeach
     </tbody>

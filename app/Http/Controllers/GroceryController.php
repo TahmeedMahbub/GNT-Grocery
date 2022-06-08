@@ -7,6 +7,7 @@ use App\Product;
 use App\Invoice;
 use App\SoldItem;
 use Session;
+use Carbon\Carbon;
 
 class GroceryController extends Controller
 {
@@ -24,7 +25,7 @@ class GroceryController extends Controller
         // dd($SoldItem->invoice);
         // dd($invoice->soldItems);
 
-        $products = Product::all();
+        $products = Product::where('stock', '>', 0)->get();
         return view('allProduct', compact('products'));
     }
 
@@ -61,18 +62,15 @@ class GroceryController extends Controller
     {   
         // dd($req->all());
         
-        for ($i = 1; $i < $req->n; $i++)
-        {
-            echo $req->prod.$i."<br>";
-        }
+        
 
         $cart = json_decode($req->cart, true);
 
         // dd($cart);
         
-        $time = date("h:i:sa, d/m/Y", strtotime('6 hour'));
+        // $time = date("h:i:sa, d/m/Y", strtotime('6 hour'));
         $invoice = new Invoice();
-        $invoice -> date = $time;
+        $invoice -> date = Carbon::now();
         $invoice -> save();
         
         $invoice -> invoice_number = $invoice->id;
@@ -90,15 +88,15 @@ class GroceryController extends Controller
             $sold_item -> quantity = $item['quantity'];
             $sold_item -> selling_price = 100;
             $sold_item -> save();
+            $product = Product::find($item['product_id']);
+            $product -> stock -= $item['quantity'];
+            $product -> save();
         }
-
-
-
         
 
 
-        Session::flash('message', 'Successfully updated your order!'); 
-        Session::flash('alert', TRUE);              
+        // Session::flash('message', 'Successfully updated your order!'); 
+        // Session::flash('alert', TRUE);              
     
             $products = Product::all();
             return view('sellProduct', compact('products')); 
@@ -125,101 +123,39 @@ class GroceryController extends Controller
         $cart = [];
         $item = [];
 
-        $invoice = Invoice::where('date', $time)->first();
-        if($req -> products1 != "false")
-        {
 
-            // $n++;
-            // $prod[$n] = $req->products1;
-            // $qty[$n] = $req->qty1;
-
-            $item['product_id'] = $req->products1;
-            $item['quantity'] = $req->qty1;
-            $cart[] = $item;
-
-
-
-            // $productPrice = Product::find($req -> products1);
-            // $productPrice -> stock -= $req -> qty1;
-            // $productPrice -> save();
-            // $sellProducts = new SoldItem();
-            // $sellProducts -> product_id = $req -> products1;
-            // $sellProducts -> quantity = $req -> qty1;
-            // $sellProducts -> invoice_id = $invoice -> id;
-            // $sellProducts -> selling_price = $productPrice -> selling_price;
-            // $sellProducts -> save();
-            // $flag = 1;
+        for($i=0; $i < $req->field; $i++)
+        {      
+            $product = "products".$i;
+            $quantity = "qty".$i;    
+            if($req->$product != "false")
+            {
+                $product_stock = Product::find($req->$product);
+                if($product_stock->stock >= $req->$quantity)
+                {
+                    $item['product_id'] = $req->$product;
+                    $item['quantity'] = $req->$quantity;
+                    $cart[] = $item;
+                }
+                else
+                {
+                    return view('stockout', compact('product_stock'));
+                }
+            }
         }
-        
-        if($req -> products2 != "false")
-        {
-            
-            // $n++;
-            // $prod[$n] = $req->products2;
-            // $qty[$n] = $req->qty2;
 
-            $item['product_id'] = $req->products2;
-            $item['quantity'] = $req->qty2;
-            $cart[] = $item;
-        }
-        
-        if($req -> products3 != "false")
-        {
-            
-            // $n++;
-            // $prod[$n] = $req->products3;
-            // $qty[$n] = $req->qty3;
-            $item['product_id'] = $req->products3;
-            $item['quantity'] = $req->qty3;
-            $cart[] = $item;
-        }
-        
-        if($req -> products4 != "false")
-        {
-            
-            // $n++;
-            // $prod[$n] = $req->products4;
-            // $qty[$n] = $req->qty4;
-
-            $item['product_id'] = $req->products4;
-            $item['quantity'] = $req->qty4;
-            $cart[] = $item;
-        }
-        
-        if($req -> products5 != "false")
-        {
-            
-            // $n++;
-            // $prod[$n] = $req->products5;
-            // $qty[$n] = $req->qty5;
-
-            $item['product_id'] = $req->products5;
-            $item['quantity'] = $req->qty5;
-            $cart[] = $item;
-        }
-        
-        if($req -> products6 != "false")
-        {
-            
-            // $n++;
-            // $prod[$n] = $req->products6;
-            // $qty[$n] = $req->qty6;
-
-            $item['product_id'] = $req->products6;
-            $item['quantity'] = $req->qty6;
-            $cart[] = $item;
-
-        }
 
         if(count($cart) == 0)
         {
-            Session::flash('message', 'Something Wrong!'); 
+            Session::flash('message', 'There is nothing in your cart! Please Choose Some Products.'); 
             Session::flash('alert', FALSE); 
+            $products = Product::all();
+            return view('sellProduct', compact('products')); 
         }
         else
         {
-            Session::flash('message', 'Successfully placed your order!'); 
-            Session::flash('alert', TRUE);         
+            // Session::flash('message', 'Order not placed!'); 
+            // Session::flash('alert', false);         
             $product_success = Product::all();
             return view('invoiceArray', compact('cart'))
             ->with('prod',$prod)
@@ -267,7 +203,8 @@ class GroceryController extends Controller
         
         // }
         
-        $invoices = Invoice::all();
+        $invoices = Invoice::where('total', '>', 0)
+        ->orderBy('id', 'DESC')->get();
         
         return view('invoices', compact('invoices')); 
     }
@@ -282,11 +219,42 @@ class GroceryController extends Controller
         // $invoice = Invoice::find(89);
         // $SoldItem = SoldItem::find(115);
         // dd($SoldItem->invoice);
-        dd($invoice->soldItems);
+        // dd($invoice->soldItems);
 
         return view('invoiceDetails', compact('invoice', 'products', 'sold_items')); 
     }
+    
+    public function restockProduct()
+    {   
+        $products = Product::all();
 
+        // $invoice = Invoice::find(89);
+        // $SoldItem = SoldItem::find(115);
+        // dd($SoldItem->invoice);
+        // dd($invoice->soldItems);
+
+        return view('restockProduct', compact('products')); 
+    }
+
+    public function restockProductSub(Request $req)
+    {   
+        $products = Product::all();
+        if($req->product != "false")
+        {
+            $product = Product::find($req->product);
+            $product->stock += $req->qty;
+            $product->save();
+            Session::flash('message', 'Product Restocked!'); 
+            Session::flash('alert', TRUE);  
+            return view('restockProduct', compact('product', 'products')); 
+        }
+        else
+        {
+            Session::flash('message', 'Choose a product to stock again!'); 
+            Session::flash('alert', FALSE); 
+            return view('restockProduct', compact('products')); 
+        }
+    }
     
 
 }

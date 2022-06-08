@@ -25,6 +25,8 @@ Route::get ('/invoices', 'GroceryController@invoices')->name('invoices');
 Route::get ('/invoice-details/{id}', 'GroceryController@invoicesDetails')->name('invoice.details');
 Route::get ('/invoiceView', 'GroceryController@invoiceView')->name('invoiceView');
 Route::get ('/invoiceView/{id}', 'GroceryController@invoiceViewId')->name('invoiceViewId');
+Route::get ('/stockout', 'GroceryController@stockout')->name('stockout');
+Route::get ('/restockProduct', 'GroceryController@restockProduct')->name('restockProduct');
+Route::post ('/restockProductSub', 'GroceryController@restockProductSub')->name('restockProductSub');
 
-Route::get ('/restockProduct', 'GroceryController@index')->name('restockProduct');
 Route::get ('/returnProduct', 'GroceryController@index')->name('returnProduct');
