@@ -29,4 +29,4 @@ Route::get ('/stockout', 'GroceryController@stockout')->name('stockout');
 Route::get ('/restockProduct', 'GroceryController@restockProduct')->name('restockProduct');
 Route::post ('/restockProductSub', 'GroceryController@restockProductSub')->name('restockProductSub');
 
-Route::get ('/returnProduct', 'GroceryController@index')->name('returnProduct');
+Route::get ('/dataTable', 'GroceryController@dataTable')->name('dataTable');

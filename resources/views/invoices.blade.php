@@ -2,10 +2,11 @@
 @section('content')
 
 <h2><center>Invoice List</center></h2><hr>
-
-<table class="table table-bordered table-hover table-striped">
-    <thead class="thead-dark">
+@php $serial = 0; @endphp
+<table class="table table-bordered table-hover table-striped" id="invoiceTable">
+    <thead class="table-dark">
         <tr>
+            <th>SL</th>
             <th>Inovice Number</th>
             <th>Customer's Name</th>
             <th>Customer's Email</th>
@@ -21,6 +22,7 @@
         onMouseOver="this.style.backgroundColor='#C0C0C0'" 
         onMouseOut="this.style.backgroundColor='#FFFFFF'">
 
+            <td>{{ ++$serial }}</td>
             <td>GNT{{$invoice->id}}</td>
             <td>
                 @if($invoice->customer_name == NULL)
@@ -51,6 +53,8 @@
     </tbody>
 
 </table>
+
+
 
 
 @endsection

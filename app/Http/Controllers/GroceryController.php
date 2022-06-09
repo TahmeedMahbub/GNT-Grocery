@@ -25,7 +25,7 @@ class GroceryController extends Controller
         // dd($SoldItem->invoice);
         // dd($invoice->soldItems);
 
-        $products = Product::where('stock', '>', 0)->get();
+        $products = Product::all();
         return view('allProduct', compact('products'));
     }
 
@@ -105,7 +105,7 @@ class GroceryController extends Controller
 
     public function sellProduct()
     {   
-        $products = Product::all();
+        $products = Product::where('stock', '>', 0)->get();
         return view('sellProduct', compact('products'));   
     }
 
@@ -254,6 +254,12 @@ class GroceryController extends Controller
             Session::flash('alert', FALSE); 
             return view('restockProduct', compact('products')); 
         }
+    }
+
+    public function dataTable()
+    {   
+        $sold_items = SoldItem::all();        
+        return view('dataTable', compact('sold_items')); 
     }
     
 

@@ -24,7 +24,12 @@
             <td> {{$product -> name}} </td>
             <td> {{$product -> sku}} </td>
             <td> {{$product -> description}} </td>
-            <td> {{$product -> stock}} </td>
+            <td> 
+                @if ($product->stock < 1)
+                    <div style="color: red;"> Out of Stock! </div>
+                @else
+                    {{$product -> stock}}
+                @endif </td>
             <td> {{$product -> purchase_price}} </td>
             <td> {{$product -> selling_price}} </td>
         </tr>
