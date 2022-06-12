@@ -34,15 +34,43 @@ class GroceryController extends Controller
         return view('addProduct');
     }
 
-    public function addProductSub(Request $req)
+    public function addProductSub(Request $request)
     {     
+        $request->validate(
+            [
+                'name'=>'required|unique:products,name|regex:/^[a-z A-Z]+$/',
+                'sku'=>'required|min:3|max:20|unique:products,sku',
+                'stock'=>'required||integer|min:0',                                    
+                'purchase_price'=>'required|integer',
+                'selling_price'=>'required|integer'
+            ],
+            [
+                'name.required'=>'Insert Product Name',
+                'name.regex'=>'Product Name should contain only characters!',
+                'name.unique'=>'This product already exists',
+
+                'sku.required'=>'Insert Product name',
+                'sku.min'=>'Insert minimum 3 characters in SKU',
+                'sku.unique'=>'This SKU already exists!',
+
+                'purchase_price.required'=>'Purchase Price Required',
+                'selling_price.required'=>'Must insert Selling Price',
+                'purchase_price.min'=>'Purchase Price Cannot Be Greater than Selling Price',
+
+            ]
+        );
+        if($request->selling_price < $request->purchase_price)
+        {
+            return "Selling Price(".$request->selling_price." Taka) Cannot Be More Than Purchase Price(".$request->purchase_price." Taka)";
+        }
+
         $addProducts = new Product(); 
-        $addProducts-> name = $req->name;
-        $addProducts-> sku = $req->sku;
-        $addProducts-> stock = $req->stock;
-        $addProducts-> purchase_price = $req->purchase_price;
-        $addProducts-> selling_price = $req->selling_price;
-        $addProducts-> description = $req->description;
+        $addProducts-> name = $request->name;
+        $addProducts-> sku = $request->sku;
+        $addProducts-> stock = $request->stock;
+        $addProducts-> purchase_price = $request->purchase_price;
+        $addProducts-> selling_price = $request->selling_price;
+        $addProducts-> description = $request->description;
         $addProducts-> save();  
 
         if($addProducts)
@@ -58,13 +86,13 @@ class GroceryController extends Controller
         return view('addProduct');
     }
 
-    public function sellProductConfirm(Request $req)
+    public function sellProductConfirm(Request $request)
     {   
-        // dd($req->all());
+        // dd($request->all());
         
         
 
-        $cart = json_decode($req->cart, true);
+        $cart = json_decode($request->cart, true);
 
         // dd($cart);
         
@@ -74,10 +102,10 @@ class GroceryController extends Controller
         $invoice -> save();
         
         $invoice -> invoice_number = $invoice->id;
-        $invoice -> total = $req->invoice_total;
-        $invoice -> payment_method = $req -> pay_method;
-        $invoice -> customer_name = $req -> cus_name;
-        $invoice -> customer_email = $req -> cus_mail;
+        $invoice -> total = $request->invoice_total;
+        $invoice -> payment_method = $request -> pay_method;
+        $invoice -> customer_name = $request -> cus_name;
+        $invoice -> customer_email = $request -> cus_mail;
         $invoice -> save();
 
         foreach($cart as $item)
@@ -109,7 +137,7 @@ class GroceryController extends Controller
         return view('sellProduct', compact('products'));   
     }
 
-    public function sellProductSub(Request $req)
+    public function sellProductSub(Request $request)
     {    
         $n = 0; //HOW MANY PRODUCTS INSERTED
         $prod[$n] = 0; //PRODUCT ARRAY
@@ -124,17 +152,17 @@ class GroceryController extends Controller
         $item = [];
 
 
-        for($i=0; $i < $req->field; $i++)
+        for($i=0; $i < $request->field; $i++)
         {      
             $product = "products".$i;
             $quantity = "qty".$i;    
-            if($req->$product != "false")
+            if($request->$product != "false")
             {
-                $product_stock = Product::find($req->$product);
-                if($product_stock->stock >= $req->$quantity)
+                $product_stock = Product::find($request->$product);
+                if($product_stock->stock >= $request->$quantity)
                 {
-                    $item['product_id'] = $req->$product;
-                    $item['quantity'] = $req->$quantity;
+                    $item['product_id'] = $request->$product;
+                    $item['quantity'] = $request->$quantity;
                     $cart[] = $item;
                 }
                 else
@@ -165,14 +193,14 @@ class GroceryController extends Controller
         }
     }
 
-    public function invoiceView(Request $req)
+    public function invoiceView(Request $request)
     {   
-        $invoice_success = Invoice::find($req -> id);
+        $invoice_success = Invoice::find($request -> id);
         $product_success = Product::all();
-        $SoldItem_success = SoldItem::where('invoice_id', $req -> id)->get();
+        $SoldItem_success = SoldItem::where('invoice_id', $request -> id)->get();
         $products = Product::all();
         // return redirect('/invoiceView/{{$invoice -> id}')
-        return redirect()->route('invoiceView', ['id' => $req -> id])
+        return redirect()->route('invoiceView', ['id' => $request -> id])
         ->with('invoice_success',$invoice_success)
         ->with('product_success',$product_success)
         ->with('SoldItem_success',$SoldItem_success); 
@@ -236,13 +264,13 @@ class GroceryController extends Controller
         return view('restockProduct', compact('products')); 
     }
 
-    public function restockProductSub(Request $req)
+    public function restockProductSub(Request $request)
     {   
         $products = Product::all();
-        if($req->product != "false")
+        if($request->product != "false")
         {
-            $product = Product::find($req->product);
-            $product->stock += $req->qty;
+            $product = Product::find($request->product);
+            $product->stock += $request->qty;
             $product->save();
             Session::flash('message', 'Product Restocked!'); 
             Session::flash('alert', TRUE);  

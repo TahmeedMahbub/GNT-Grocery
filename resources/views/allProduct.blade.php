@@ -1,7 +1,6 @@
 @extends('index')
 @section('content')
 
-<br><br>
 
 <center>
     <h2>Products List</h2>
@@ -21,17 +20,25 @@
         @foreach ($products as $product)
         <tr>
             <td> {{ ++$sl }}</td>
-            <td> {{$product -> name}} </td>
-            <td> {{$product -> sku}} </td>
-            <td> {{$product -> description}} </td>
+            <td> {{ $product->name }} </td>
+            <td> {{ $product->sku }} </td>
+            <td> 
+                @if ($product->description)
+                    {{ $product -> description }}
+                @else
+                    No Description Given!
+                @endif 
+            </td>
+
             <td> 
                 @if ($product->stock < 1)
                     <div style="color: red;"> Out of Stock! </div>
                 @else
-                    {{$product -> stock}}
-                @endif </td>
-            <td> {{$product -> purchase_price}} </td>
-            <td> {{$product -> selling_price}} </td>
+                    {{ $product -> stock }}
+                @endif 
+            </td>
+            <td> {{ $product -> purchase_price }} </td>
+            <td> {{ $product -> selling_price }} </td>
         </tr>
         @endforeach
 
