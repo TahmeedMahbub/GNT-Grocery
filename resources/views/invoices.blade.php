@@ -1,18 +1,19 @@
 @extends('index')
 @section('content')
 
-<h2><center>Invoice List</center></h2><hr>
+<h2><center>Invoice List (JQuery DataTable)</center></h2><hr>
 @php $serial = 0; @endphp
 <table class="table table-bordered table-hover table-striped" id="invoiceTable">
     <thead class="table-dark">
         <tr>
-            <th>SL</th>
+            <th>Sl</th>
             <th>Inovice Number</th>
             <th>Customer's Name</th>
             <th>Customer's Email</th>
             <th>Total</th>
             <th>Payment Method</th>
             <th>Date & Time</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -28,7 +29,7 @@
                 @if($invoice->customer_name == NULL)
                     Not Inserted!
                 @else
-                    {{ $invoice->customer_name }}
+                    {{ ucfirst($invoice->customer_name) }}  {{-- UCFIRST => FIRST LETTER WILL BE CAPITAZED --}}
                 @endif
             </td>
             <td>
@@ -40,19 +41,29 @@
             </td>
             <td>{{$invoice->total}} Taka</td>
             <td>
-                @if($invoice->payment_method == NULL)
-                    Not Defined!
+                @if($invoice->payment_method == 'cash')
+                    {{ $invoice->payment_method }} <p style="font-size: 30px; display: inline;"> &#128181;</p>
                 @else
-                    {{ $invoice->payment_method }}
+                    {{ $invoice->payment_method }} <p style="font-size: 30px; display: inline;"> &#128179;</p>
                 @endif
             </td>
-            <td>{{ date_format(date_create($invoice->created_at), "d/M/Y H:i:s") }}</td>
-            {{-- {{date_format(date_create($invoice->date), "d/M/Y H:i:s")}} --}}
+            <td>{{ date_format(date_create($invoice->created_at), "d-M-Y h:i:sa") }}</td>
+            <td><a href='{{ route("invoice.details", $invoice->id) }}' class="edit btn btn-primary btn-sm">Details</a></td>
         </tr>
         @endforeach
     </tbody>
 
 </table>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready( function () {
+        $('#invoiceTable').DataTable();
+    } );
+</script>
 
 
 

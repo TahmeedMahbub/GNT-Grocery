@@ -8,6 +8,8 @@ use App\Invoice;
 use App\SoldItem;
 use Session;
 use Carbon\Carbon;
+use DataTables;
+use Mail;
 
 class GroceryController extends Controller
 {
@@ -20,10 +22,6 @@ class GroceryController extends Controller
     public function allProduct()
     {      
 
-        // $invoice = Invoice::find(89);
-        // $SoldItem = SoldItem::find(115);
-        // dd($SoldItem->invoice);
-        // dd($invoice->soldItems);
 
         $products = Product::all();
         return view('allProduct', compact('products'));
@@ -88,15 +86,9 @@ class GroceryController extends Controller
 
     public function sellProductConfirm(Request $request)
     {   
-        // dd($request->all());
-        
-        
 
         $cart = json_decode($request->cart, true);
 
-        // dd($cart);
-        
-        // $time = date("h:i:sa, d/m/Y", strtotime('6 hour'));
         $invoice = new Invoice();
         $invoice -> date = Carbon::now();
         $invoice -> save();
@@ -120,13 +112,9 @@ class GroceryController extends Controller
             $product -> stock -= $item['quantity'];
             $product -> save();
         }
-        
-
-
-        // Session::flash('message', 'Successfully updated your order!'); 
-        // Session::flash('alert', TRUE);              
+                     
     
-            $products = Product::all();
+            $products = Product::where('stock', '>', 0)->get();
             return view('sellProduct', compact('products')); 
          
     }
@@ -139,14 +127,6 @@ class GroceryController extends Controller
 
     public function sellProductSub(Request $request)
     {    
-        $n = 0; //HOW MANY PRODUCTS INSERTED
-        $prod[$n] = 0; //PRODUCT ARRAY
-        $qty[$n] = 0; //QTY ARRAY
-        $flag = 0; //CHECK ANY ERROR; 0->ERROR, 1->OK
-        $time = date("h:i:sa, d/m/Y", strtotime('6 hour'));
-        $invoices = new Invoice();
-        $invoices -> date = $time;
-        $invoices -> save();
 
         $cart = [];
         $item = [];
@@ -181,14 +161,9 @@ class GroceryController extends Controller
             return view('sellProduct', compact('products')); 
         }
         else
-        {
-            // Session::flash('message', 'Order not placed!'); 
-            // Session::flash('alert', false);         
+        {        
             $product_success = Product::all();
             return view('invoiceArray', compact('cart'))
-            ->with('prod',$prod)
-            ->with('qty',$qty)
-            ->with('n', $n)
             ->with('product_success',$product_success);
         }
     }
@@ -199,7 +174,6 @@ class GroceryController extends Controller
         $product_success = Product::all();
         $SoldItem_success = SoldItem::where('invoice_id', $request -> id)->get();
         $products = Product::all();
-        // return redirect('/invoiceView/{{$invoice -> id}')
         return redirect()->route('invoiceView', ['id' => $request -> id])
         ->with('invoice_success',$invoice_success)
         ->with('product_success',$product_success)
@@ -212,24 +186,15 @@ class GroceryController extends Controller
         $product_success = Product::all();
         $SoldItem_success = SoldItem::where('invoice_id', $id)->get();
         $products = Product::all();
-        // return redirect('/invoiceView/{{$invoice -> id}')
         return view('invoiceView')
         ->with('invoice_success',$invoice_success)
         ->with('product_success',$product_success)
         ->with('SoldItem_success',$SoldItem_success); 
     }
+    
+    
     public function invoices()
-    {   
-        // $invoice = Invoice::where('total', null)->get();
-        // if(isset($invoice))
-        // {
-        //     foreach($invoice as $i)
-        //     {
-        //         $sold = SoldItem::where('invoice_id', $i->id)->delete();
-        //     }
-        //     $invoiceDel = Invoice::find($invoice->id)->delete();
-        
-        // }
+    {  
         
         $invoices = Invoice::where('total', '>', 0)
         ->orderBy('id', 'DESC')->get();
@@ -238,16 +203,92 @@ class GroceryController extends Controller
     }
 
 
+    
+    public function invoicesDataTable(Request $request)
+    {   
+        if ($request->ajax()) {
+            $invoices = Invoice::where('total', '>', 0)
+            ->orderBy('id', 'DESC')->get();
+
+            $x = 0;
+
+            return DataTables::of($invoices)
+
+                    ->addIndexColumn()
+
+                    ->addColumn('invoice_number', function($row) {
+                        $html = 'GNT' . $row->invoice_number;
+                        return $html;
+                    })
+
+                    ->addColumn('customer_name', function($row) {
+                        if($row->customer_name)
+                        {
+                            $html =  ucfirst($row->customer_name);
+                        }
+                        else
+                        {
+                            $html = 'Unknown';
+                        }
+                        return $html;
+                    })
+
+                    ->addColumn('customer_email', function($row) {
+                        if($row->customer_email)
+                        {
+                            $html = $row->customer_email;
+                        }
+                        else
+                        {
+                            $html = 'Unknown';
+                        }
+                        return $html;
+                    })
+
+                    ->addColumn('total', function($row) {
+                        $html = $row->total.' Taka';
+                        return $html;
+                    })
+
+                    ->addColumn('created_at', function($row) {
+                        $html = date_format(date_create($row->created_at), "d-M-Y, h:i:sa");
+                        return $html;
+                    })
+
+                    ->addColumn('payment_method', function($row) {
+                        if($row->payment_method == "cash")
+                        {
+                            $html = $row->payment_method .' <p style="font-size: 30px; display: inline;"> &#128181;</p>';
+                        }
+                        else
+                        {
+                            $html = $row->payment_method .' <p style="font-size: 30px; display: inline;"> &#128179;</p>';
+                        }
+                        return $html;
+                    })
+                    
+
+                    ->addColumn('action', function($row) use ($x){  // USE => USED TO ACCESS VARIABLES FROM OUTSIDE OF VARIABLE    
+                        $btn = '<a href="'.route("invoice.details", $row->invoice_number + $x).'" class="edit btn btn-primary btn-sm">Details</a>';
+                        return $btn;
+                    })
+
+                    ->rawColumns(['action', 'invoice_number', 'customer_name', 'customer_email', 'payment_method'])
+
+                    ->make(true);
+        }   
+
+        return view('invoicesDataTable');
+    
+    }
+
+
+
     public function invoicesDetails($id)
     {   
         $invoice = Invoice::find($id);
         $products = Product::all();
         $sold_items = SoldItem::where('invoice_id', $id)->get();
-
-        // $invoice = Invoice::find(89);
-        // $SoldItem = SoldItem::find(115);
-        // dd($SoldItem->invoice);
-        // dd($invoice->soldItems);
 
         return view('invoiceDetails', compact('invoice', 'products', 'sold_items')); 
     }
@@ -255,11 +296,6 @@ class GroceryController extends Controller
     public function restockProduct()
     {   
         $products = Product::all();
-
-        // $invoice = Invoice::find(89);
-        // $SoldItem = SoldItem::find(115);
-        // dd($SoldItem->invoice);
-        // dd($invoice->soldItems);
 
         return view('restockProduct', compact('products')); 
     }
