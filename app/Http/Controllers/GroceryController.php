@@ -9,7 +9,8 @@ use App\SoldItem;
 use Session;
 use Carbon\Carbon;
 use DataTables;
-use Mail;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\InvoiceMail;
 
 class GroceryController extends Controller
 {
@@ -112,10 +113,45 @@ class GroceryController extends Controller
             $product -> stock -= $item['quantity'];
             $product -> save();
         }
+
+
+
+
+
+        $details = [
+            'title' => 'Thank You '.$request -> cus_name.', See You Again!',
+            // 'url' => $url,
+        ];
+       
+        if($request->cus_mail)
+        {
+            // Mail::to($request->cus_mail)->send(new InvoiceMail($details));
+
+            $invoice = Invoice::find($invoice->id);
+            $products = Product::all();
+            $sold_items = SoldItem::where('invoice_id', $invoice->id)->get();
+
+            // return view('invoiceDetails', compact('invoice', 'products', 'sold_items'));
+
+
+
+            $data["email"] = $request->cus_mail;
+            $data["title"] = 'Thanks for Purchasing from GNT Grocery';
+            $data["invoice"] = $invoice;
+            $data["products"] = $products;
+            $data["sold_items"] = $sold_items;
+            
+      
+            Mail::send('invoiceMail', $data, function($message)use($data) {
+                $message->to($data["email"], $data["email"])
+                        ->subject($data["title"]);
+                        
+            });
+
+        }
                      
-    
-            $products = Product::where('stock', '>', 0)->get();
-            return view('sellProduct', compact('products')); 
+        $products = Product::where('stock', '>', 0)->get();
+        return view('sellProduct', compact('products')); 
          
     }
 
