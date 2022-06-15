@@ -1,5 +1,10 @@
 <?php
 
+
+use App\Product;
+use App\Invoice;
+use App\SoldItem;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -29,5 +34,12 @@ Route::get ('/invoiceView/{id}', 'GroceryController@invoiceViewId')->name('invoi
 Route::get ('/stockout', 'GroceryController@stockout')->name('stockout');
 Route::get ('/restockProduct', 'GroceryController@restockProduct')->name('restockProduct');
 Route::post ('/restockProductSub', 'GroceryController@restockProductSub')->name('restockProductSub');
+
+Route::get ('/invoice-details/{id}', 'GroceryController@invoicesDetails')->name('invoice.details');
+Route::get('/downloadInvoice/{id}', 'GroceryController@downloadInvoice')->name('downloadInvoice');
+Route::get('/viewInvoice/{id}', 'GroceryController@viewInvoice')->name('viewInvoice');
+
+
+
 
 Route::get ('/dataTable', 'GroceryController@dataTable')->name('dataTable');

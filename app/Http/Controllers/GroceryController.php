@@ -11,9 +11,11 @@ use Carbon\Carbon;
 use DataTables;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InvoiceMail;
+use PDF;
 
 class GroceryController extends Controller
 {
+
     public function index()
     {      
         $products = Product::all();
@@ -136,15 +138,52 @@ class GroceryController extends Controller
 
 
             $data["email"] = $request->cus_mail;
-            $data["title"] = 'Thanks for Purchasing from GNT Grocery';
+            $data["title"] = 'New1 Thanks for Purchasing from GNT Grocery';
             $data["invoice"] = $invoice;
             $data["products"] = $products;
             $data["sold_items"] = $sold_items;
+
+
+
+            $invoiceData = Invoice::find($invoice->id);
+            $productsData = Product::all();
+            $sold_itemsData = SoldItem::where('invoice_id', $invoice->id)->get();
+
+
+            $data["invoiceData"] = $invoiceData;
+            $data["invoice_no"] = $invoice->id;
+            $data["productsData"] = $productsData;
+            $data["sold_itemsData"] = $sold_itemsData;
             
-      
-            Mail::send('invoiceMail', $data, function($message)use($data) {
-                $message->to($data["email"], $data["email"])
-                        ->subject($data["title"]);
+
+            $pdf = PDF::loadView('invoiceMail', $data);
+            // $pdf->setPaper('A4', 'portrait');
+            $data['pdf'] = $pdf;
+
+            // $files = [
+            //     public_path('GNT.pdf'),
+            // ];  
+            // dd($files);
+
+            Mail::send('MailBodySellConfirm', $data, function($message)use($data) {       
+                
+ 
+                // foreach ($files as $file){
+                //     $message->attach($file);
+                // }
+
+
+                $message->to($data["email"])
+                ->subject($data["title"])
+                ->attachData($data['pdf']->output(), 
+                'GNT'.$data["invoice_no"].'.pdf', 
+                ['mime'=>'application/pdf']);
+
+                // foreach ($files as $file){
+                //     $message->attach($file);
+                // }
+
+                 
                         
             });
 
@@ -318,8 +357,6 @@ class GroceryController extends Controller
     
     }
 
-
-
     public function invoicesDetails($id)
     {   
         $invoice = Invoice::find($id);
@@ -327,6 +364,50 @@ class GroceryController extends Controller
         $sold_items = SoldItem::where('invoice_id', $id)->get();
 
         return view('invoiceDetails', compact('invoice', 'products', 'sold_items')); 
+    }
+
+    public function downloadInvoice($id)   //DOWNLOAD PDF
+    {
+        $invoiceData = Invoice::find($id);
+        $productsData = Product::all();
+        $sold_itemsData = SoldItem::where('invoice_id', $id)->get();
+
+
+        $data["invoiceData"] = $invoiceData;
+        $data["productsData"] = $productsData;
+        $data["sold_itemsData"] = $sold_itemsData;
+        
+
+        $pdf = PDF::loadView('invoiceMail', $data);
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->download('GNT'. $id .'.pdf');
+ 
+    
+    
+    }
+
+    public function viewInvoice($id)  
+    {
+        $invoiceData = Invoice::find($id);
+        $productsData = Product::all();
+        $sold_itemsData = SoldItem::where('invoice_id', $id)->get();
+
+
+        $data["invoiceData"] = $invoiceData;
+        $data["productsData"] = $productsData;
+        $data["sold_itemsData"] = $sold_itemsData;
+        
+
+        $pdf = PDF::loadView('invoiceMail', $data);
+        $pdf->setPaper('A4', 'portrait');
+        
+
+        // return $pdf->download('GNT_Grocery.pdf');
+        return $pdf->stream('GNT'. $id .'.pdf');
+ 
+    
+    
     }
     
     public function restockProduct()

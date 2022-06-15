@@ -30,6 +30,11 @@ return [
     */
 
     'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
+//     'host' => env('MAIL_HOST', 'smtp.office365.com'),
+//   'from' => [
+//         'address' => env('MAIL_FROM_ADDRESS', 'your-mail@host.com'),
+//         'name' => env('MAIL_FROM_NAME', 'Your User Name'),
+    // ],
 
     /*
     |--------------------------------------------------------------------------

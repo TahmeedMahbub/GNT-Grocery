@@ -6,7 +6,21 @@
 <table class="table"><tr width="100%">
     <td><h2>Invoice No#GNT{{$invoice -> id}}</h2></td>
     <td style="text-align: right;"><h4>{{ date_format(date_create($invoice->created_at), "d/M/Y H:i:s") }}</h4></td>
-</tr></table>
+</tr>
+
+
+<tr>
+    <td>
+        <h3>Hello, {{$invoice->customer_name}}</h3>
+    </td>
+    <td style="text-align: right;">
+        <a class="btn btn-info" href="{{ route('viewInvoice', $invoice -> id) }}" role="button">View Invoice</a> 
+        <a class="btn btn-primary" href="{{ route('downloadInvoice', $invoice -> id) }}" role="button">Download Invoice</a>
+    </td>
+</tr>
+
+</table>
+
 
 {{-- {{ dd($sold_items) }} --}}
     
@@ -66,8 +80,7 @@
         <th> {{$total}} Taka</th>
     </tr>
 
-
-    <h3>Hello, {{$invoice->customer_name}}</h3>
+    
 
     
     </tbody>
