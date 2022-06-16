@@ -20,13 +20,13 @@
 
         #watermark { 
             position: fixed; 
-            bottom: 20%; 
-            right: 20%;
+            bottom: 40%; 
+            right: 18%;
             z-index:999; 
             opacity: 0.3;
             font-size: 40px;
-            transform-origin: 0 0;
-            transform: rotate(-45deg);
+            /* transform-origin: 0 0; */
+            /* transform: rotate(-45deg); */
 
         }
 
@@ -39,16 +39,18 @@
         }
 
         </style>
+        <title>GNT{{ $invoiceData->id }}</title>
 </head>
 
 
 <div id="watermark">
-    <h1> GNT Grocery </h1>
+    <img src="https://www.geeksntechnology.com/assets_frontend/images/files/logo.png" alt="" height="300px">
+    {{-- <h1> GNT Grocery </h1> --}}
 </div>
 
 <center>
     <h1 style="display: inline;">GNT Grocery</h1><br>
-    Suite:1301, Sel Trident Tower, <br>
+    Suite:1301, SEL Trident Tower, <br>
     57 Purana Paltan Line, Dhaka-1000 <br>
 </center>
 
@@ -58,7 +60,7 @@
         <td style="text-align: right;"><h4>{{ date_format(date_create($invoiceData->created_at), "d/M/Y H:i:s") }}</h4></td>
     </tr></table>
 
-<h3>Hello, {{$invoiceData->customer_name}}</h3>
+<h3>Hello, {{strtoupper($invoiceData->customer_name)}}</h3>
 
 
 <table>
@@ -77,10 +79,6 @@
     <?php $total=0; ?>
 
     
-    {{-- @foreach($sold_items as $sold_item)
-        {{ $sold_item['product_id'] }}
-    @endforeach --}}
-
     @foreach ($sold_itemsData as $sold)
     @if ($sold->invoice_id == $invoiceData->id)
         @foreach ($productsData as $product)
@@ -96,7 +94,7 @@
         @endforeach     
     @endif
     @endforeach
-    <tr>
+    <tr style="background-color:rgb(204, 204, 204)">
         <td> </td>
         <td> </td>
         <td><b>  Total Amount:  </b></td>

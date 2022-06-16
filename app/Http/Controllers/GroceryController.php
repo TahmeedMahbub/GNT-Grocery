@@ -12,6 +12,7 @@ use DataTables;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InvoiceMail;
 use PDF;
+use DB;
 
 class GroceryController extends Controller
 {
@@ -62,7 +63,18 @@ class GroceryController extends Controller
         );
         if($request->selling_price < $request->purchase_price)
         {
-            return "Selling Price(".$request->selling_price." Taka) Cannot Be More Than Purchase Price(".$request->purchase_price." Taka)";
+            $data["p_name"] = $request->name;
+            $data["p_sku"] = $request->sku;
+            $data["s_price"] = $request->selling_price;
+            $data["p_price"] = $request->purchase_price;
+            $data["stock"] = $request->stock;
+            $product_stock = false;
+            
+            return view('warning', compact('data', 'product_stock'));
+            
+            
+            return view('warning', compact(''));
+
         }
 
         $addProducts = new Product(); 
@@ -122,19 +134,14 @@ class GroceryController extends Controller
 
         $details = [
             'title' => 'Thank You '.$request -> cus_name.', See You Again!',
-            // 'url' => $url,
         ];
        
         if($request->cus_mail)
         {
-            // Mail::to($request->cus_mail)->send(new InvoiceMail($details));
 
             $invoice = Invoice::find($invoice->id);
             $products = Product::all();
             $sold_items = SoldItem::where('invoice_id', $invoice->id)->get();
-
-            // return view('invoiceDetails', compact('invoice', 'products', 'sold_items'));
-
 
 
             $data["email"] = $request->cus_mail;
@@ -156,35 +163,16 @@ class GroceryController extends Controller
             $data["sold_itemsData"] = $sold_itemsData;
             
 
-            $pdf = PDF::loadView('invoiceMail', $data);
-            // $pdf->setPaper('A4', 'portrait');
+            $pdf = PDF::loadView('invoicePDF', $data);
             $data['pdf'] = $pdf;
 
-            // $files = [
-            //     public_path('GNT.pdf'),
-            // ];  
-            // dd($files);
-
             Mail::send('MailBodySellConfirm', $data, function($message)use($data) {       
-                
- 
-                // foreach ($files as $file){
-                //     $message->attach($file);
-                // }
-
-
                 $message->to($data["email"])
                 ->subject($data["title"])
                 ->attachData($data['pdf']->output(), 
                 'GNT'.$data["invoice_no"].'.pdf', 
                 ['mime'=>'application/pdf']);
-
-                // foreach ($files as $file){
-                //     $message->attach($file);
-                // }
-
-                 
-                        
+      
             });
 
         }
@@ -222,7 +210,7 @@ class GroceryController extends Controller
                 }
                 else
                 {
-                    return view('stockout', compact('product_stock'));
+                    return view('warning', compact('product_stock'));
                 }
             }
         }
@@ -270,11 +258,17 @@ class GroceryController extends Controller
     
     public function invoices()
     {  
-        
         $invoices = Invoice::where('total', '>', 0)
         ->orderBy('id', 'DESC')->get();
-        
-        return view('invoices', compact('invoices')); 
+
+        $profits = Invoice::select(
+            DB::raw('invoices.id, SUM((products.selling_price - products.purchase_price)* sold_items.quantity) as benefit'))
+        ->join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
+        ->join('products', 'products.id', '=', 'sold_items.product_id')
+        ->groupBy('invoices.id')
+        ->get();
+        // dd($profits);
+        return view('invoices', compact('invoices', 'profits')); 
     }
 
 
@@ -315,7 +309,7 @@ class GroceryController extends Controller
                         }
                         else
                         {
-                            $html = 'Unknown';
+                            $html = 'Not Given!';
                         }
                         return $html;
                     })
@@ -359,11 +353,14 @@ class GroceryController extends Controller
 
     public function invoicesDetails($id)
     {   
-        $invoice = Invoice::find($id);
-        $products = Product::all();
-        $sold_items = SoldItem::where('invoice_id', $id)->get();
 
-        return view('invoiceDetails', compact('invoice', 'products', 'sold_items')); 
+        $join_table = Invoice::select('products.name', 'products.selling_price', 'sold_items.quantity', 'invoices.total', 'invoices.created_at', 'invoices.customer_name' )
+        ->join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
+        ->join('products', 'products.id', '=', 'sold_items.product_id')
+        ->where('invoices.id', $id)
+        ->get();
+        return view('invoiceDetails', compact('join_table', 'id'));
+
     }
 
     public function downloadInvoice($id)   //DOWNLOAD PDF
@@ -378,7 +375,7 @@ class GroceryController extends Controller
         $data["sold_itemsData"] = $sold_itemsData;
         
 
-        $pdf = PDF::loadView('invoiceMail', $data);
+        $pdf = PDF::loadView('invoicePDF', $data);
         $pdf->setPaper('A4', 'portrait');
 
         return $pdf->download('GNT'. $id .'.pdf');
@@ -399,11 +396,10 @@ class GroceryController extends Controller
         $data["sold_itemsData"] = $sold_itemsData;
         
 
-        $pdf = PDF::loadView('invoiceMail', $data);
+        $pdf = PDF::loadView('invoicePDF', $data);
         $pdf->setPaper('A4', 'portrait');
         
 
-        // return $pdf->download('GNT_Grocery.pdf');
         return $pdf->stream('GNT'. $id .'.pdf');
  
     
@@ -445,3 +441,32 @@ class GroceryController extends Controller
     
 
 }
+
+
+
+
+
+
+
+// $purchase_transactions = PurchaseTransaction::join('users as u', 'u.id', '=', 'purchase_transactions.finalized_by')
+//     ->join('users as u2', 'u2.id', '=', 'purchase_transactions.supplier_id')
+//     ->select(
+
+//         'purchase_transactions.id',
+//         DB::raw('DATE_FORMAT(purchase_transactions.transaction_date, "%m/%d/%Y") as date'),
+//         'purchase_transactions.reference_no',
+//         DB::raw('CONCAT_WS(" ", u2.first_name, u2.last_name) as supplier'),
+//         'purchase_transactions.purchase_status',
+//         DB::raw(
+//             'IF(
+//                 (select SUM(quantity_purchased) from purchase_variations where purchase_transaction_id = purchase_transactions.id) is null, 0, (select SUM(quantity_purchased) from purchase_variations where purchase_transaction_id = purchase_transactions.id)
+//             ) as total_items'
+//         ),
+//         'purchase_transactions.payment_status',
+//         'purchase_transactions.amount',
+//         DB::raw('CONCAT_WS(" ", u.first_name, DATE_FORMAT(purchase_transactions.finalized_at, "%m/%d/%Y %H:%i:%s")) as finalized_by')
+
+//     )
+//     ->groupBy('purchase_transactions.id')
+//     ->orderBy('purchase_transactions.transaction_date', 'desc')
+//     ->get();

@@ -8,12 +8,13 @@
         <tr>
             <th>Sl</th>
             <th>Inovice Number</th>
-            <th>Customer's Name</th>
-            <th>Customer's Email</th>
+            <th>Name</th>
+            <th>Email</th>
             <th>Total</th>
-            <th>Payment Method</th>
+            <th>Method</th>
+            <th>Profit</th>
             <th>Date & Time</th>
-            <th>Actions</th>
+            {{-- <th>Actions</th> --}}
         </tr>
     </thead>
     <tbody>
@@ -42,13 +43,22 @@
             <td>{{$invoice->total}} Taka</td>
             <td>
                 @if($invoice->payment_method == 'cash')
-                    {{ $invoice->payment_method }} <p style="font-size: 30px; display: inline;"> &#128181;</p>
+                    {{ $invoice->payment_method }} <i class="bi bi-cash"></i>
+                    {{-- <p style="font-size: 30px; display: inline;"> &#128181;</p> --}}
                 @else
-                    {{ $invoice->payment_method }} <p style="font-size: 30px; display: inline;"> &#128179;</p>
+                    {{ $invoice->payment_method }} <i class="bi bi-credit-card"></i>
+                    {{-- <p style="font-size: 30px; display: inline;"> &#128179;</p> --}}
                 @endif
             </td>
-            <td>{{ date_format(date_create($invoice->created_at), "d-M-Y h:i:sa") }}</td>
-            <td><a href='{{ route("invoice.details", $invoice->id) }}' class="edit btn btn-primary btn-sm">Details</a></td>
+            <td>
+                @foreach ($profits as $profit)
+                    @if($profit->id == $invoice->id)
+                        {{$profit->benefit}} Taka
+                    @endif
+                @endforeach
+            </td>
+            <td>{{ date_format(date_create($invoice->created_at), "d-M-y h:iA") }}</td>
+            {{-- <td><a href='{{ route("invoice.details", $invoice->id) }}' class="edit btn btn-primary btn-sm">Details</a></td> --}}
         </tr>
         @endforeach
     </tbody>

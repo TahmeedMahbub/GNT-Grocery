@@ -42,7 +42,7 @@ class InvoiceMail extends Mailable
         return view('invoiceDetails', compact('invoice', 'products', 'sold_items')); 
         
         // dd($details);
-        return $this->subject('THANK YOU for Purchasing From GNT Grocery')
-                    ->view('invoiceMail');
+        return $this->subject('Thank YOU for Purchasing From GNT Grocery')
+                    ->view('invoicePDF');
     }
 }

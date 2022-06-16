@@ -1,7 +1,18 @@
 @extends('index')
 @section('content')
+<head>
+    <style>
+        #sellButton { 
+            position: fixed; 
+            bottom: 80%; 
+            right: 2%;
+            /* transform-origin: 0 0; */
+            /* transform: rotate(-45deg); */
 
-<br><br>
+        }
+        </style>
+</head>
+
 
 <center>
 
@@ -26,7 +37,7 @@
     <form action="{{route('sellProductSub')}}" method="post">
     {{@csrf_field()}}
 
-    @php $field = 5; @endphp {{-- HOW MANY SELLING FIELD WILL ARRIVE --}}
+    @php $field = 20; @endphp {{-- HOW MANY SELLING FIELD WILL ARRIVE --}}
 
     @for ($i = 0; $i < $field; $i++)
         <tr><td> <select name="products{{ $i }}" style="height: 30px;">
@@ -42,8 +53,9 @@
     @endfor
 
     <input type="hidden" name="field" value="{{ $field }}">
-    <tr><td colspan="2"><center><input type="submit" value = "Sell Product" class="btn btn-primary mb-2" style="width: 180px"></center></td></tr>
-    
+    <div id="sellButton">
+        <input type="submit" value = "Sell Product" class="btn btn-primary mb-2" style="width: 180px">
+    </div>
     
     </form>
 

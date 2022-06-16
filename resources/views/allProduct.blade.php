@@ -15,6 +15,7 @@
             <th>STOCK</th>
             <th>PURCHASE PRICE</th>
             <th>SELLING PRICE</th>
+            <th>PROFIT</th>
         </tr>
 
         @foreach ($products as $product)
@@ -37,8 +38,9 @@
                     {{ $product -> stock }}
                 @endif 
             </td>
-            <td> {{ $product -> purchase_price }} </td>
-            <td> {{ $product -> selling_price }} </td>
+            <td> {{ $product->purchase_price }} Taka</td>
+            <td> {{ $product->selling_price }} Taka</td>
+            <td> {{ $product->selling_price - $product->purchase_price }} Taka</td>
         </tr>
         @endforeach
 
