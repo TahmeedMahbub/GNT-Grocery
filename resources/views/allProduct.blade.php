@@ -9,6 +9,7 @@
         <?php $sl=0; ?>
         <tr style="background-color: Lavender;">
             <th>SL</th>
+            <th>IMAGE</th>
             <th>NAME</th>
             <th>SKU</th>
             <th>DESCRIPTION</th>
@@ -22,6 +23,7 @@
         <tr>
             <td> {{ ++$sl }}</td>
             <td> {{ $product->name }} </td>
+            <td> <img src="{{ asset('public/product images/'.$product->image) }}" height="30px" alt="{{ $product->name }} Image"> </td>
             <td> {{ $product->sku }} </td>
             <td> 
                 @if ($product->description)

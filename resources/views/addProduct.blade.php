@@ -20,12 +20,13 @@
     <h2>Enter Product Information</h2>
 
     <table class="table table-bordered" style="width: 500px;">
-    <form action="{{route('addProductSub')}}" method="post">
+    <form action="{{ route('addProductSub') }}" method="post" enctype="multipart/form-data">
     {{@csrf_field()}}
+
         <tr>
             <td>Product Name:</td>
             <td>
-                <input type="text" placeholder="Enter Product Name" name="name"  value="{{old('name')}}" >
+                <input type="text" placeholder="Enter Product Name" name="name"  value="{{old('name')}}"  style="width: 330px">
             </td>
         </tr>
         @error('name')                
@@ -35,10 +36,12 @@
                 </td>
             </tr>
         @enderror
+
+
         <tr>
             <td>Product SKU:</td>
             <td>
-                <input type="text" placeholder="Enter Product SKU" name="sku"  value="{{old('sku')}}" >
+                <input type="text" placeholder="Enter Product SKU" name="sku"  value="{{old('sku')}}" style="width: 330px">
             </td>
         </tr>
         @error('sku')
@@ -48,10 +51,12 @@
                 </td>
             </tr>
         @enderror
+
+
         <tr>
             <td>Available Quantity:</td>
             <td>
-                <input type="number" min="0" placeholder="Enter Available Quantity" name="stock"  value="{{old('stock')}}">
+                <input type="number" min="0" placeholder="Enter Available Quantity" name="stock"  value="{{old('stock')}}" style="width: 330px">
             </td>
         </tr>
             @error('stock')
@@ -61,10 +66,12 @@
                     </td>
                 </tr>
             @enderror
+
+
         <tr>
             <td>Purchase Price:</td>
             <td>
-                <input type="number" min="0" placeholder="Enter Purchasing Price" name="purchase_price"  value="{{old('purchase_price')}}">
+                <input type="number" min="0" placeholder="Enter Purchasing Price" name="purchase_price"  value="{{old('purchase_price')}}" style="width: 330px">
             </td>
         </tr>
         @error('purchase_price')
@@ -74,10 +81,12 @@
                 </td>
             </tr>
         @enderror
+
+
         <tr>
                 <td>Selling Price:</td>
                 <td>
-                    <input type="number" min="0" placeholder="Enter Selling Price" name="selling_price" value="{{old('selling_price')}}">
+                    <input type="number" min="0" placeholder="Enter Selling Price" name="selling_price" value="{{old('selling_price')}}" style="width: 330px">
                 </td>
         </tr>
         @error('selling_price')
@@ -87,11 +96,28 @@
                 </td>
             </tr>
         @enderror
+
+
+        <tr>
+                <td>Product Image:</td>
+                <td>
+                    <input type="file" name="file" class="form-control" value="{{old('file')}}">
+                </td>
+        </tr>
+        @error('file')
+            <tr class="table-danger">
+                <td colspan = "2">
+                    <center>{{$message}}</center>
+                </td>
+            </tr>
+        @enderror
+
+
         <tr>
                 <td>Product Description:</td>
                 <td>
                     <!-- <input type="text" placeholder="Enter Product Description" name="desc"> -->
-                    <textarea  placeholder="Enter Product Description" name="description" style="resize: none; height: 85px; width: 190px;" ></textarea>
+                    <textarea  placeholder="Enter Product Description" name="description" style="resize: none; height: 85px; width: 330px;" ></textarea>
                 </td>
         </tr>
         <tr><td colspan="2"><center><input type="submit" value = "Insert Product" class="btn btn-primary mb-2" style="width: 160px"></center></td></tr>

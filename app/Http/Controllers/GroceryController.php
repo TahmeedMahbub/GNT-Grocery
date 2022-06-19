@@ -37,14 +37,17 @@ class GroceryController extends Controller
     }
 
     public function addProductSub(Request $request)
-    {     
+    {   
+        
+        
         $request->validate(
             [
                 'name'=>'required|unique:products,name|regex:/^[a-z A-Z]+$/',
                 'sku'=>'required|min:3|max:20|unique:products,sku',
                 'stock'=>'required||integer|min:0',                                    
                 'purchase_price'=>'required|integer',
-                'selling_price'=>'required|integer'
+                'selling_price'=>'required|integer',
+                'file' => 'mimes:jpg,jpeg,png,bmp|max:3072',
             ],
             [
                 'name.required'=>'Insert Product Name',
@@ -59,8 +62,17 @@ class GroceryController extends Controller
                 'selling_price.required'=>'Must insert Selling Price',
                 'purchase_price.min'=>'Purchase Price Cannot Be Greater than Selling Price',
 
+                'file.mimes' => 'Only Pictures are allowed',
+                'file.max' => 'The Picture should not be more than 3MB',                
+
             ]
         );
+
+        // $ext = pathinfo($request->file, PATHINFO_EXTENSION);
+        // $fileName = $request->sku.'.'.$ext; 
+
+        
+
         if($request->selling_price < $request->purchase_price)
         {
             $data["p_name"] = $request->name;
@@ -72,11 +84,9 @@ class GroceryController extends Controller
             
             return view('warning', compact('data', 'product_stock'));
             
-            
-            return view('warning', compact(''));
-
         }
 
+        
         $addProducts = new Product(); 
         $addProducts-> name = $request->name;
         $addProducts-> sku = $request->sku;
@@ -84,6 +94,15 @@ class GroceryController extends Controller
         $addProducts-> purchase_price = $request->purchase_price;
         $addProducts-> selling_price = $request->selling_price;
         $addProducts-> description = $request->description;
+
+        if($request->file)
+        {
+            $fileName = $request->sku.'.'.$request->file->extension();    
+            $request->file->move(public_path('product images'), $fileName);
+            $addProducts->image = $fileName;
+        }       
+
+        
         $addProducts-> save();  
 
         if($addProducts)
@@ -438,35 +457,5 @@ class GroceryController extends Controller
         $sold_items = SoldItem::all();        
         return view('dataTable', compact('sold_items')); 
     }
-    
 
 }
-
-
-
-
-
-
-
-// $purchase_transactions = PurchaseTransaction::join('users as u', 'u.id', '=', 'purchase_transactions.finalized_by')
-//     ->join('users as u2', 'u2.id', '=', 'purchase_transactions.supplier_id')
-//     ->select(
-
-//         'purchase_transactions.id',
-//         DB::raw('DATE_FORMAT(purchase_transactions.transaction_date, "%m/%d/%Y") as date'),
-//         'purchase_transactions.reference_no',
-//         DB::raw('CONCAT_WS(" ", u2.first_name, u2.last_name) as supplier'),
-//         'purchase_transactions.purchase_status',
-//         DB::raw(
-//             'IF(
-//                 (select SUM(quantity_purchased) from purchase_variations where purchase_transaction_id = purchase_transactions.id) is null, 0, (select SUM(quantity_purchased) from purchase_variations where purchase_transaction_id = purchase_transactions.id)
-//             ) as total_items'
-//         ),
-//         'purchase_transactions.payment_status',
-//         'purchase_transactions.amount',
-//         DB::raw('CONCAT_WS(" ", u.first_name, DATE_FORMAT(purchase_transactions.finalized_at, "%m/%d/%Y %H:%i:%s")) as finalized_by')
-
-//     )
-//     ->groupBy('purchase_transactions.id')
-//     ->orderBy('purchase_transactions.transaction_date', 'desc')
-//     ->get();

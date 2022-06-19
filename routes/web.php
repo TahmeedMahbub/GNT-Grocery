@@ -40,6 +40,4 @@ Route::get('/downloadInvoice/{id}', 'GroceryController@downloadInvoice')->name('
 Route::get('/viewInvoice/{id}', 'GroceryController@viewInvoice')->name('viewInvoice');
 
 
-
-
 Route::get ('/dataTable', 'GroceryController@dataTable')->name('dataTable');

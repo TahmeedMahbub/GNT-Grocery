@@ -20,6 +20,7 @@ class CreateProductsTable extends Migration
             $table->integer('stock');
             $table->integer('purchase_price');
             $table->integer('selling_price');
+            $table->text('image')->default('products.jpg');
             $table->text('description')->nullable();
             $table->timestamps();
         });
