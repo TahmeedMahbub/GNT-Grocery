@@ -35,6 +35,9 @@
             <li class="nav-item">
                 <a class="nav-link" href="{{route('invoicesDataTable')}}"><i class="bi bi-list-stars"></i> Invoices DataTable &emsp;&emsp;</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{route('stat')}}"><i class="bi bi-file-bar-graph-fill"></i> stat &emsp;&emsp;</a>
+            </li>
         </ul>
         </div>
     </div>

@@ -25,8 +25,6 @@ class GroceryController extends Controller
     
     public function allProduct()
     {      
-
-
         $products = Product::all();
         return view('allProduct', compact('products'));
     }
@@ -120,11 +118,10 @@ class GroceryController extends Controller
 
     public function sellProductConfirm(Request $request)
     {   
-
         $cart = json_decode($request->cart, true);
 
         $invoice = new Invoice();
-        $invoice -> date = Carbon::now();
+        $invoice -> date = date("Y-m-d");
         $invoice -> save();
         
         $invoice -> invoice_number = $invoice->id;
@@ -458,4 +455,38 @@ class GroceryController extends Controller
         return view('dataTable', compact('sold_items')); 
     }
 
+
+    public function stat()
+    {   
+        // $products = Product::all();
+        // return view('allProduct', compact('products'));
+        // $invoices = Invoice::all();
+        // $products = Product::all();
+        // $sold_items = SoldItem::all(); 
+        
+        $everyday = Invoice::join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
+        ->join('products', 'products.id', '=', 'sold_items.product_id')
+        ->select(
+
+            'invoices.date',
+            // DB::raw('COUNT(invoices.id) as total_invoices'),
+            DB::raw('SUM(products.selling_price * sold_items.quantity) as revenue'),
+            DB::raw('(SUM(products.selling_price * sold_items.quantity) - SUM(products.purchase_price * sold_items.quantity)) as profit'),
+            DB::raw('SUM(sold_items.quantity) as total_product')
+            // DB::raw('round(100*(1-(SUM(products.purchase_price)/SUM(products.selling_price))), 2) as percent'),
+
+        )->groupBy('invoices.date')
+        ->get();
+
+        $total_invoices = Invoice::select(
+
+                DB::raw('COUNT(id) as total'), 'date'
+
+            )
+            ->groupBy('invoices.date')
+            ->get();
+     
+        return view('stat', compact('everyday', 'total_invoices')); 
+    }
 }
+

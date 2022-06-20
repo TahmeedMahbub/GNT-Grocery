@@ -39,5 +39,6 @@ Route::get ('/invoice-details/{id}', 'GroceryController@invoicesDetails')->name(
 Route::get('/downloadInvoice/{id}', 'GroceryController@downloadInvoice')->name('downloadInvoice');
 Route::get('/viewInvoice/{id}', 'GroceryController@viewInvoice')->name('viewInvoice');
 
+Route::get ('/stat', 'GroceryController@stat')->name('stat');
 
 Route::get ('/dataTable', 'GroceryController@dataTable')->name('dataTable');
