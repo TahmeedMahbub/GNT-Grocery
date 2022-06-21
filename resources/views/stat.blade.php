@@ -1,22 +1,39 @@
 @extends('index')
 @section('content')
 
+<head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      var chart_val = <?php echo $chart_val; ?>;
+      console.log(chart_val);
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable(chart_val);
+        var options = {
+          title: 'Revenue-Profit Chart Day by Day',
+          curveType: 'function',
+          legend: { position: 'bottom' }
+        };
+        var chart = new google.visualization.LineChart(document.getElementById('linechart'));
+        chart.draw(data, options);
+      }
+    </script>
+  </head>
+  <body>
+    <center><h2>Per Day Sale Statistics</h2></center><br>
 
-<center><h2>Per Day Sale Statistics</h2></center><br>
+@php    
+    $subtotal_invoices = 0;
+    $subtotal_revenune = 0;
+    $subtotal_profit = 0;
+    $average_percentage = 0;
+@endphp
 
-<div style="position: absolute; left:2%">
-    <table class="table table-striped" id="stat" style="width: 700px; left:0%">
+<div style="position: absolute; left:2%;">
+    <table class="table table-striped" id="stat" style="width: 650px; left:0%">
         <?php $sl=0; ?>
-        <thead>
-            <tr style="background-color: Lavender;">
-                <th>SL</th>
-                <th>DATE</th>
-                <th>TOTAL INVOICES</th>
-                <th>REVENUE</th>
-                <th>PROFIT</th>
-                <th>PERCENTAGE</th>
-            </tr>
-        </thead>
+        
         <tbody>
             @foreach ($everyday as $day)
             <tr>
@@ -26,17 +43,31 @@
                     @foreach($total_invoices as $total_invoice)
                         @if($total_invoice->date == $day->date)
                             {{ $total_invoice->total }}
+                            @php $subtotal_invoices += $total_invoice->total; @endphp
                         @endif
                     @endforeach
-                    {{ $day->total_invoices }} </td>
+                </td>
+                 {{-- $day->total_invoices --}}
                 <td> {{ $day->revenue }} Taka </td>
+                @php $subtotal_revenune += $day->revenue ; @endphp
                 <td> {{ $day->profit }} Taka </td>
-                <td> {{ round($day->profit * 100 / $day->revenue, 2) }}% </td>
+                @php $subtotal_profit += $day->profit; @endphp
+                <td> {{ $percent = round($day->profit * 100 / $day->revenue, 2) }}% </td>
+                @php $average_percentage += $percent; @endphp
                 
             </tr>
             @endforeach
         </tbody>
-
+        <thead>
+            <tr style="background-color: Lavender;">
+                <th>SL<br>No</th>
+                <th>DATE<br>({{ $sl }} Days)</th>
+                <th>SOLD<br>({{ $subtotal_invoices }} Inv.)</th>
+                <th>REVENUE<br>({{ $subtotal_revenune }} Tk)</th>
+                <th>PROFIT<br>({{ $subtotal_profit }} Tk)</th>
+                <th>PERCENTAGE<br>({{ round($average_percentage/$sl, 2) }}%)</th>
+            </tr>
+        </thead>
         
 
         
@@ -56,10 +87,12 @@
 </script>
 </div>
 
-<div style="position: absolute; right:2%">
+<div style="position: absolute; right:-10%; width: 900px; height: 500px; top: 13%; z-index: -100;"  id="linechart"></div>
 
-    <img src="https://www.researchgate.net/profile/Vijay-Kumar-30/publication/293014146/figure/fig3/AS:334712682893314@1456813130243/Graph-of-profit-at-time-t.png" alt="" width="600px">
+<p style="position: absolute; right:36.7%; top: 45%; transform-origin: 0 0; transform: rotate(-90deg);">Amount (Taka)</p>
+  </body>
 
-</div>
+
+
 
 @endsection

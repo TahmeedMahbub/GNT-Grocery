@@ -467,26 +467,35 @@ class GroceryController extends Controller
         $everyday = Invoice::join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
         ->join('products', 'products.id', '=', 'sold_items.product_id')
         ->select(
-
+            
             'invoices.date',
             // DB::raw('COUNT(invoices.id) as total_invoices'),
+            DB::raw("CONCAT(DAY(invoices.date), '-', LEFT(monthname(invoices.date), 3)) as today"),
             DB::raw('SUM(products.selling_price * sold_items.quantity) as revenue'),
             DB::raw('(SUM(products.selling_price * sold_items.quantity) - SUM(products.purchase_price * sold_items.quantity)) as profit'),
             DB::raw('SUM(sold_items.quantity) as total_product')
             // DB::raw('round(100*(1-(SUM(products.purchase_price)/SUM(products.selling_price))), 2) as percent'),
 
-        )->groupBy('invoices.date')
+        )        
+        ->orderBy('invoices.date')
+        ->groupBy('invoices.date')
         ->get();
 
         $total_invoices = Invoice::select(
-
-                DB::raw('COUNT(id) as total'), 'date'
-
+                DB::raw('COUNT(id) as total'), 
+                'date'
             )
             ->groupBy('invoices.date')
             ->get();
-     
-        return view('stat', compact('everyday', 'total_invoices')); 
+            // dd($total_invoices);
+
+
+        $chart_val[] = ['Day','Revenue','Profit'];
+        foreach ($everyday as $key => $value) {
+            $chart_val[++$key] = [$value->today, (int)$value->revenue, (int)$value->profit];
+        }
+        $chart_val = json_encode($chart_val);
+        return view('stat', compact('everyday', 'total_invoices', 'chart_val')); 
     }
 }
 
