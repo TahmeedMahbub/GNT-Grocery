@@ -1,4 +1,4 @@
-@extends('adminLayout')
+@extends('customer.layout')
 @section('content')
 <head>
     <style>
@@ -54,7 +54,7 @@
 
     <input type="hidden" name="field" value="{{ $field }}">
     <div id="sellButton">
-        <input type="submit" value = "Sell Product" class="btn btn-primary mb-2" style="width: 180px">
+        <input type="submit" value = "Buy Product" class="btn btn-primary mb-2" style="width: 180px">
     </div>
     
     </form>

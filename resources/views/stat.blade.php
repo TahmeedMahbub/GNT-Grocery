@@ -1,4 +1,4 @@
-@extends('index')
+@extends('adminLayout')
 @section('content')
 
 <head>
@@ -87,9 +87,23 @@
 </script>
 </div>
 
-<div style="position: absolute; right:-10%; width: 900px; height: 500px; top: 13%; z-index: -100;"  id="linechart"></div>
+<div style="position: absolute; right:-10%; width: 900px; height: 500px; top:24%; z-index: -100;"  id="linechart"></div>
 
-<p style="position: absolute; right:36.7%; top: 45%; transform-origin: 0 0; transform: rotate(-90deg);">Amount (Taka)</p>
+<div style="position: absolute; right:2%;">
+    <table style="width: 580px;"><tr>
+    <td>
+        <a class="btn btn-primary" href="{{ route('downloadCSV') }}" role="button"><i class="bi bi-filetype-csv"></i> Download CSV</a>
+    </td>
+    <td style="text-align:right">
+        <a class="btn btn-info" href="{{ route('downloadChart') }}" role="button"><i class="bi bi-graph-up-arrow"></i> Download Chart</a> 
+    </td>
+    </tr></table>
+    <hr>
+    
+    
+</div>
+
+<p style="position: absolute; right:37.7%; top: 57%; transform-origin: 0 0; transform: rotate(-90deg);">Amount (Taka)</p>
   </body>
 
 

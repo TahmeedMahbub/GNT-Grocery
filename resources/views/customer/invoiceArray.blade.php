@@ -1,4 +1,4 @@
-@extends('adminLayout')
+@extends('customer.layout')
 @section('content')
 
 <br><br>
@@ -51,21 +51,26 @@
     </tr>  
 
     <tr>
+        <h2 style=" display: inline; position: absolute; left:10%;">Good Day, {{ ucfirst(Session()->get('name')) }}</h2>
+        <div style="position: absolute; right:10%;">
         <form action="{{route('sellProductConfirm')}}" method="post"> <center>
             {{ @csrf_field() }}
-            Name: <input type="text" name="cus_name" placeholder="Enter Customer's Name">&emsp;&emsp;&emsp;&emsp; 
-            Email: <input type="text" name="cus_mail" placeholder="Enter Customer's Email">&emsp;&emsp;&emsp;&emsp;
+            <input type="hidden" name="cus_name" value="{{ Session()->get('name') }}">
+            <input type="hidden" name="cus_mail" value="{{ Session()->get('email') }}">
+            <input type="hidden" name="bought_by" value="{{ Session()->get('id') }}">
             <b>Payment Method</b>
             
             <input type="radio" name="pay_method" value="card">Card
             <input type="radio" name="pay_method" value="cash" checked>Cash 
-            &emsp;&emsp;&emsp;&emsp;
+            
 
             <input type="hidden" name="cart" value="{{ json_encode($cart) }}">
 
             <input type="hidden" name="invoice_total" value="{{ $total }}">
             <input type="Submit" value="Confirm Order">
-        </center> </form><br><br>
+        </center> </form>
+        </div>
+        <br><br><br>
     </tr>
 
     

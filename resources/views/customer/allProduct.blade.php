@@ -1,11 +1,11 @@
-@extends('admin.layout')
+@extends('customer.layout')
 @section('content')
 
 
 <center>
     <h2>Products List</h2>
 
-<div style="width: 1300px; position: absolute; left: 2%;">
+<div style="width: 1300px; position: absolute; left: 2%;" class="d-flex justify-content-center">
     <table class="table table-striped table-hover" id="allProducts">
         {{-- style="width: 1300px;" --}}
         <?php $sl=0; ?>
@@ -17,10 +17,7 @@
                 <th>SKU</th>
                 <th>DESCRIPTION</th>
                 <th>STOCK</th>
-                <th>PURCHASE PRICE</th>
                 <th>SELLING PRICE</th>
-                <th>PROFIT</th>
-                <th>PERCENT</th>
             </tr>
         </thead>
         <tbody>
@@ -45,11 +42,7 @@
                         {{ $product -> stock }}
                     @endif 
                 </td>
-                <td> {{ $product->purchase_price }} Taka</td>
                 <td> {{ $product->selling_price }} Taka</td>
-                <td> {{ $product->selling_price - $product->purchase_price }} Taka</td>
-                <td> {{ round(($product->selling_price - $product->purchase_price) * 100 / $product->selling_price, 2) }}% </td>
-                    
             </tr>
             @endforeach
         </tbody>

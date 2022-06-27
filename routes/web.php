@@ -19,9 +19,11 @@ use App\SoldItem;
 
 
 
-Route::get ('/', 'GroceryController@index')->name('index');
-Route::get ('/addProduct', 'GroceryController@addProduct')->name('addProduct');
+Route::get ('/admin/layout', 'GroceryController@adminLayout')->name('adminLayout');
+
+Route::get ('/', 'GroceryController@allProduct')->name('allProduct');
 Route::get ('/allProduct', 'GroceryController@allProduct')->name('allProduct');
+Route::get ('/addProduct', 'GroceryController@addProduct')->name('addProduct');
 Route::post ('/addProduct', 'GroceryController@addProductSub')->name('addProductSub');
 Route::get ('/sellProduct', 'GroceryController@sellProduct')->name('sellProduct');
 Route::post ('/sellProduct', 'GroceryController@sellProductSub')->name('sellProductSub');
@@ -40,5 +42,19 @@ Route::get('/downloadInvoice/{id}', 'GroceryController@downloadInvoice')->name('
 Route::get('/viewInvoice/{id}', 'GroceryController@viewInvoice')->name('viewInvoice');
 
 Route::get ('/stat', 'GroceryController@stat')->name('stat');
+Route::get ('/downloadChart', 'GroceryController@downloadChart')->name('downloadChart');
+Route::get ('/downloadCSV', 'GroceryController@downloadCSV')->name('downloadCSV');
 
-Route::get ('/dataTable', 'GroceryController@dataTable')->name('dataTable');
+
+Route::get ('/signup', 'GroceryController@signup')->name('signup');
+Route::post ('/signup', 'GroceryController@signupSub')->name('signupSub');
+
+Route::get ('/signin', 'GroceryController@signin')->name('signin');
+Route::post ('/signin', 'GroceryController@signinSub')->name('signinSub');
+
+Route::get ('/signout', 'GroceryController@signout')->name('signout');
+
+Route::get ('/verify/{id}', 'GroceryController@verify')->name('verify');
+Route::post ('/verify', 'GroceryController@verifySub')->name('verifySub');
+Route::get ('/verifyMail/{id}/{otp}', 'GroceryController@verifyMail')->name('verifyMail');
+Route::get ('/deleteVerifyMail/{id}', 'GroceryController@deleteVerifyMail')->name('deleteVerifyMail');

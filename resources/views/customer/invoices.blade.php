@@ -1,18 +1,16 @@
-@extends('adminLayout')
+@extends('customer.layout')
 @section('content')
 
-<h2><center>Invoice List (JQuery DataTable)</center></h2><hr>
+<h2><center>Invoice List</center></h2><hr>
 @php $serial = 0; @endphp
 <table class="table table-bordered table-hover table-striped" id="invoiceTable">
     <thead class="table-dark">
         <tr>
             <th>Sl</th>
             <th>Inovice Number</th>
-            <th>Name</th>
-            <th>Email</th>
             <th>Total</th>
             <th>Method</th>
-            <th>Profit</th>
+            <th>Status</th>
             <th>Date & Time</th>
             {{-- <th>Actions</th> --}}
         </tr>
@@ -26,20 +24,6 @@
 
             <td>{{ ++$serial }}</td>
             <td>GNT{{$invoice->id}}</td>
-            <td>
-                @if($invoice->customer_name == NULL)
-                    Not Inserted!
-                @else
-                    {{ ucfirst($invoice->customer_name) }}  {{-- UCFIRST => FIRST LETTER WILL BE CAPITAZED --}}
-                @endif
-            </td>
-            <td>
-                @if($invoice->customer_email == NULL)
-                    Not Inserted!
-                @else
-                    {{ $invoice->customer_email }}
-                @endif
-            </td>
             <td>{{$invoice->total}} Taka</td>
             <td>
                 @if($invoice->payment_method == 'cash')
@@ -49,13 +33,9 @@
                     {{ $invoice->payment_method }} <i class="bi bi-credit-card"></i>
                     {{-- <p style="font-size: 30px; display: inline;"> &#128179;</p> --}}
                 @endif
-            </td>
+            </td>            
             <td>
-                @foreach ($profits as $profit)
-                    @if($profit->id == $invoice->id)
-                        {{$profit->benefit}} Taka
-                    @endif
-                @endforeach
+                <span class="badge text-bg-warning">Processing</span>    
             </td>
             <td>{{ date_format(date_create($invoice->created_at), "d-M-y h:iA") }}</td>
             {{-- <td><a href='{{ route("invoice.details", $invoice->id) }}' class="edit btn btn-primary btn-sm">Details</a></td> --}}

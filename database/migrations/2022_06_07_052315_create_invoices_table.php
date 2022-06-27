@@ -21,6 +21,7 @@ class CreateInvoicesTable extends Migration
             $table->string('date', 100);
             $table->string('customer_email', 100)->nullable();
             $table->string('customer_name', 100)->nullable();
+            $table->string('bought_by', 30)->default('admin');
             $table->timestamps();
         });
     }

@@ -1,4 +1,4 @@
-@extends('adminLayout')
+@extends('customer.layout')
 @section('content')
 
 
@@ -72,6 +72,33 @@
         </tr> 
     
     </tbody>
+</table>
+<br><br>
+<table>
+    <tr>
+        <td><strong>Name: </strong></td>
+        <td>{{ $user->name }}</td>
+    </tr>
+    <tr>
+        <td><strong>Phone: </strong></td>
+        <td>{{ $user->phone }}</td>
+    </tr>
+    <tr>
+        <td><strong>Payment: </strong></td>
+        <td><span class="badge text-bg-success">Paid</span></td>
+    </tr>
+    <tr>
+        <td><strong>Email: </strong></td>
+        <td>{{ $user->email }}</td>
+    </tr>
+    <tr>
+        <td><strong>Address: </strong></td>
+        <td>{{ $user->address }}</td>
+    </tr>
+    <tr>
+        <td><strong>Probable Deliver Date: </strong></td>
+        <td>{{ date_format(date_create($join_table[0]->created_at->addDays(2)), "d/M/Y") }}</td>
+    </tr>
 </table>
         
 

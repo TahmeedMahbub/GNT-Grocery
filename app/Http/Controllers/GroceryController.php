@@ -6,10 +6,12 @@ use Illuminate\Http\Request;
 use App\Product;
 use App\Invoice;
 use App\SoldItem;
+use App\User;
 use Session;
 use Carbon\Carbon;
 use DataTables;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 use App\Mail\InvoiceMail;
 use PDF;
 use DB;
@@ -17,16 +19,33 @@ use DB;
 class GroceryController extends Controller
 {
 
-    public function index()
+    public function adminLayout()
     {      
         $products = Product::all();
-        return view('index', compact('products'));
+        return view('admin.layout', compact('products'));
+    }
+
+    public function customerLayout()
+    {      
+        $products = Product::all();
+        return view('customer.layout', compact('products'));
     }
     
     public function allProduct()
     {      
         $products = Product::all();
-        return view('allProduct', compact('products'));
+        if(Session()->has('usertype'))
+        {
+            if(Session()->get('usertype') == "admin")
+            {
+                return view('admin.allProduct', compact('products'));
+            }
+            else
+            {
+                return view('customer.allProduct', compact('products'));
+            }
+        }
+        return view('customer.allProduct', compact('products'));
     }
 
     public function addProduct()
@@ -86,12 +105,12 @@ class GroceryController extends Controller
 
         
         $addProducts = new Product(); 
-        $addProducts-> name = $request->name;
-        $addProducts-> sku = $request->sku;
-        $addProducts-> stock = $request->stock;
-        $addProducts-> purchase_price = $request->purchase_price;
-        $addProducts-> selling_price = $request->selling_price;
-        $addProducts-> description = $request->description;
+        $addProducts->name = $request->name;
+        $addProducts->sku = $request->sku;
+        $addProducts->stock = $request->stock;
+        $addProducts->purchase_price = $request->purchase_price;
+        $addProducts->selling_price = $request->selling_price;
+        $addProducts->description = $request->description;
 
         if($request->file)
         {
@@ -101,7 +120,7 @@ class GroceryController extends Controller
         }       
 
         
-        $addProducts-> save();  
+        $addProducts->save();  
 
         if($addProducts)
         {
@@ -121,27 +140,31 @@ class GroceryController extends Controller
         $cart = json_decode($request->cart, true);
 
         $invoice = new Invoice();
-        $invoice -> date = date("Y-m-d");
-        $invoice -> save();
+        $invoice->date = date("Y-m-d");
+        $invoice->save();
         
-        $invoice -> invoice_number = $invoice->id;
-        $invoice -> total = $request->invoice_total;
-        $invoice -> payment_method = $request -> pay_method;
-        $invoice -> customer_name = $request -> cus_name;
-        $invoice -> customer_email = $request -> cus_mail;
-        $invoice -> save();
+        $invoice->invoice_number = $invoice->id;
+        $invoice->total = $request->invoice_total;
+        $invoice->payment_method = $request->pay_method;
+        $invoice->customer_name = $request->cus_name;
+        $invoice->customer_email = $request->cus_mail;
+        if(Session()->get('usertype') == "customer")
+        {
+            $invoice->bought_by = $request->bought_by;
+        }
+        $invoice->save();
 
         foreach($cart as $item)
         {
             $sold_item = new SoldItem();
-            $sold_item -> product_id = $item['product_id'];
-            $sold_item -> invoice_id = $invoice->id;
-            $sold_item -> quantity = $item['quantity'];
-            $sold_item -> selling_price = 100;
-            $sold_item -> save();
+            $sold_item->product_id = $item['product_id'];
+            $sold_item->invoice_id = $invoice->id;
+            $sold_item->quantity = $item['quantity'];
+            $sold_item->selling_price = 100;
+            $sold_item->save();
             $product = Product::find($item['product_id']);
-            $product -> stock -= $item['quantity'];
-            $product -> save();
+            $product->stock -= $item['quantity'];
+            $product->save();
         }
 
 
@@ -149,7 +172,7 @@ class GroceryController extends Controller
 
 
         $details = [
-            'title' => 'Thank You '.$request -> cus_name.', See You Again!',
+            'title' => 'Thank You '.$request->cus_name.', See You Again!',
         ];
        
         if($request->cus_mail)
@@ -161,7 +184,7 @@ class GroceryController extends Controller
 
 
             $data["email"] = $request->cus_mail;
-            $data["title"] = 'New1 Thanks for Purchasing from GNT Grocery';
+            $data["title"] = 'Thanks for Purchasing from GNT Grocery';
             $data["invoice"] = $invoice;
             $data["products"] = $products;
             $data["sold_items"] = $sold_items;
@@ -184,8 +207,8 @@ class GroceryController extends Controller
 
             Mail::send('MailBodySellConfirm', $data, function($message)use($data) {       
                 $message->to($data["email"])
-                ->subject($data["title"])
-                ->attachData($data['pdf']->output(), 
+               ->subject($data["title"])
+               ->attachData($data['pdf']->output(), 
                 'GNT'.$data["invoice_no"].'.pdf', 
                 ['mime'=>'application/pdf']);
       
@@ -194,14 +217,36 @@ class GroceryController extends Controller
         }
                      
         $products = Product::where('stock', '>', 0)->get();
-        return view('sellProduct', compact('products')); 
+        if(Session()->has('usertype'))
+        {
+            if(Session()->get('usertype') == "admin")
+            {
+                return view('admin.sellProduct', compact('products')); 
+            }
+            else
+            {
+                return view('customer.sellProduct', compact('products')); 
+            }
+        }
+        return view('signin');
          
     }
 
     public function sellProduct()
     {   
         $products = Product::where('stock', '>', 0)->get();
-        return view('sellProduct', compact('products'));   
+        if(Session()->has('usertype'))
+        {
+            if(Session()->get('usertype') == "admin")
+            {
+                return view('admin.sellProduct', compact('products')); 
+            }
+            else
+            {
+                return view('customer.sellProduct', compact('products')); 
+            }
+        }
+        return view('signin');
     }
 
     public function sellProductSub(Request $request)
@@ -220,9 +265,12 @@ class GroceryController extends Controller
                 $product_stock = Product::find($request->$product);
                 if($product_stock->stock >= $request->$quantity)
                 {
-                    $item['product_id'] = $request->$product;
-                    $item['quantity'] = $request->$quantity;
-                    $cart[] = $item;
+                    if($request->$quantity != 0)
+                    {
+                        $item['product_id'] = $request->$product;
+                        $item['quantity'] = $request->$quantity;
+                        $cart[] = $item;
+                    }
                 }
                 else
                 {
@@ -236,27 +284,35 @@ class GroceryController extends Controller
         {
             Session::flash('message', 'There is nothing in your cart! Please Choose Some Products.'); 
             Session::flash('alert', FALSE); 
-            $products = Product::all();
+            $products = Product::where('stock', '>', 0)->get();
             return view('sellProduct', compact('products')); 
         }
         else
         {        
             $product_success = Product::all();
-            return view('invoiceArray', compact('cart'))
-            ->with('product_success',$product_success);
+
+            if(Session()->get('usertype') == "admin")
+            {
+                return view('admin.invoiceArray', compact('cart', 'product_success'));
+            }
+            else
+            {
+                return view('customer.invoiceArray', compact('cart', 'product_success'));
+            }
+            return view('invoiceArray', compact('cart', 'product_success'));
         }
     }
 
     public function invoiceView(Request $request)
     {   
-        $invoice_success = Invoice::find($request -> id);
+        $invoice_success = Invoice::find($request->id);
         $product_success = Product::all();
-        $SoldItem_success = SoldItem::where('invoice_id', $request -> id)->get();
+        $SoldItem_success = SoldItem::where('invoice_id', $request->id)->get();
         $products = Product::all();
-        return redirect()->route('invoiceView', ['id' => $request -> id])
-        ->with('invoice_success',$invoice_success)
-        ->with('product_success',$product_success)
-        ->with('SoldItem_success',$SoldItem_success); 
+        return redirect()->route('invoiceView', ['id' => $request->id])
+       ->with('invoice_success',$invoice_success)
+       ->with('product_success',$product_success)
+       ->with('SoldItem_success',$SoldItem_success); 
     }
 
     public function invoiceViewId($id)
@@ -266,25 +322,41 @@ class GroceryController extends Controller
         $SoldItem_success = SoldItem::where('invoice_id', $id)->get();
         $products = Product::all();
         return view('invoiceView')
-        ->with('invoice_success',$invoice_success)
-        ->with('product_success',$product_success)
-        ->with('SoldItem_success',$SoldItem_success); 
+       ->with('invoice_success',$invoice_success)
+       ->with('product_success',$product_success)
+       ->with('SoldItem_success',$SoldItem_success); 
     }
     
     
     public function invoices()
     {  
-        $invoices = Invoice::where('total', '>', 0)
-        ->orderBy('id', 'DESC')->get();
+        if(Session()->has('usertype'))
+        {
+            if(Session()->get('usertype') == "admin")
+            {
+                $invoices = Invoice::where('total', '>', 0)
+               ->orderBy('id', 'DESC')->get();
+                //CHECK PROFITS< ONLY FOR ADMIN
+                $profits = Invoice::select(
+                    DB::raw('invoices.id, SUM((products.selling_price - products.purchase_price)* sold_items.quantity) as benefit'))
+               ->join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
+               ->join('products', 'products.id', '=', 'sold_items.product_id')
+               ->groupBy('invoices.id')
+               ->get();
 
-        $profits = Invoice::select(
-            DB::raw('invoices.id, SUM((products.selling_price - products.purchase_price)* sold_items.quantity) as benefit'))
-        ->join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
-        ->join('products', 'products.id', '=', 'sold_items.product_id')
-        ->groupBy('invoices.id')
-        ->get();
+                return view('admin.invoices', compact('invoices', 'profits')); 
+            }
+            else
+            {
+                $invoices = Invoice::where('bought_by', Session()->get('id'))
+                ->where('total', '>', 0)
+               ->orderBy('id', 'DESC')->get();
+               return view('customer.invoices', compact('invoices')); 
+            }
+        }
+        return view('signin');
+
         // dd($profits);
-        return view('invoices', compact('invoices', 'profits')); 
     }
 
 
@@ -293,20 +365,20 @@ class GroceryController extends Controller
     {   
         if ($request->ajax()) {
             $invoices = Invoice::where('total', '>', 0)
-            ->orderBy('id', 'DESC')->get();
+           ->orderBy('id', 'DESC')->get();
 
             $x = 0;
 
             return DataTables::of($invoices)
 
-                    ->addIndexColumn()
+                   ->addIndexColumn()
 
-                    ->addColumn('invoice_number', function($row) {
+                   ->addColumn('invoice_number', function($row) {
                         $html = 'GNT' . $row->invoice_number;
                         return $html;
                     })
 
-                    ->addColumn('customer_name', function($row) {
+                   ->addColumn('customer_name', function($row) {
                         if($row->customer_name)
                         {
                             $html =  ucfirst($row->customer_name);
@@ -318,7 +390,7 @@ class GroceryController extends Controller
                         return $html;
                     })
 
-                    ->addColumn('customer_email', function($row) {
+                   ->addColumn('customer_email', function($row) {
                         if($row->customer_email)
                         {
                             $html = $row->customer_email;
@@ -330,17 +402,17 @@ class GroceryController extends Controller
                         return $html;
                     })
 
-                    ->addColumn('total', function($row) {
+                   ->addColumn('total', function($row) {
                         $html = $row->total.' Taka';
                         return $html;
                     })
 
-                    ->addColumn('created_at', function($row) {
+                   ->addColumn('created_at', function($row) {
                         $html = date_format(date_create($row->created_at), "d-M-Y, h:i:sa");
                         return $html;
                     })
 
-                    ->addColumn('payment_method', function($row) {
+                   ->addColumn('payment_method', function($row) {
                         if($row->payment_method == "cash")
                         {
                             $html = $row->payment_method .' <p style="font-size: 30px; display: inline;"> &#128181;</p>';
@@ -353,14 +425,14 @@ class GroceryController extends Controller
                     })
                     
 
-                    ->addColumn('action', function($row) use ($x){  // USE => USED TO ACCESS VARIABLES FROM OUTSIDE OF VARIABLE    
+                   ->addColumn('action', function($row) use ($x){  // USE => USED TO ACCESS VARIABLES FROM OUTSIDE OF VARIABLE    
                         $btn = '<a href="'.route("invoice.details", $row->invoice_number + $x).'" class="edit btn btn-primary btn-sm">Details</a>';
                         return $btn;
                     })
 
-                    ->rawColumns(['action', 'invoice_number', 'customer_name', 'customer_email', 'payment_method'])
+                   ->rawColumns(['action', 'invoice_number', 'customer_name', 'customer_email', 'payment_method'])
 
-                    ->make(true);
+                   ->make(true);
         }   
 
         return view('invoicesDataTable');
@@ -371,11 +443,23 @@ class GroceryController extends Controller
     {   
 
         $join_table = Invoice::select('products.name', 'products.selling_price', 'sold_items.quantity', 'invoices.total', 'invoices.created_at', 'invoices.customer_name' )
-        ->join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
-        ->join('products', 'products.id', '=', 'sold_items.product_id')
-        ->where('invoices.id', $id)
-        ->get();
-        return view('invoiceDetails', compact('join_table', 'id'));
+       ->join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
+       ->join('products', 'products.id', '=', 'sold_items.product_id')
+       ->where('invoices.id', $id)
+       ->get();
+       if(Session()->has('usertype'))
+        {
+            if(Session()->get('usertype') == "admin")
+            {
+                return view('admin.invoiceDetails', compact('join_table', 'id'));
+            }
+            else
+            {
+                $user = User::find(Session()->get('id'));
+                return view('customer.invoiceDetails', compact('join_table', 'id', 'user'));
+            }
+        }
+        return view('signin');
 
     }
 
@@ -458,36 +542,28 @@ class GroceryController extends Controller
 
     public function stat()
     {   
-        // $products = Product::all();
-        // return view('allProduct', compact('products'));
-        // $invoices = Invoice::all();
-        // $products = Product::all();
-        // $sold_items = SoldItem::all(); 
         
         $everyday = Invoice::join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
-        ->join('products', 'products.id', '=', 'sold_items.product_id')
-        ->select(
+       ->join('products', 'products.id', '=', 'sold_items.product_id')
+       ->select(
             
             'invoices.date',
-            // DB::raw('COUNT(invoices.id) as total_invoices'),
             DB::raw("CONCAT(DAY(invoices.date), '-', LEFT(monthname(invoices.date), 3)) as today"),
             DB::raw('SUM(products.selling_price * sold_items.quantity) as revenue'),
             DB::raw('(SUM(products.selling_price * sold_items.quantity) - SUM(products.purchase_price * sold_items.quantity)) as profit'),
             DB::raw('SUM(sold_items.quantity) as total_product')
-            // DB::raw('round(100*(1-(SUM(products.purchase_price)/SUM(products.selling_price))), 2) as percent'),
 
         )        
-        ->orderBy('invoices.date')
-        ->groupBy('invoices.date')
-        ->get();
+       ->orderBy('invoices.date')
+       ->groupBy('invoices.date')
+       ->get();
 
         $total_invoices = Invoice::select(
                 DB::raw('COUNT(id) as total'), 
                 'date'
             )
-            ->groupBy('invoices.date')
-            ->get();
-            // dd($total_invoices);
+           ->groupBy('invoices.date')
+           ->get();
 
 
         $chart_val[] = ['Day','Revenue','Profit'];
@@ -497,5 +573,262 @@ class GroceryController extends Controller
         $chart_val = json_encode($chart_val);
         return view('stat', compact('everyday', 'total_invoices', 'chart_val')); 
     }
+
+    public function downloadChart()
+    {   
+        
+        $everyday = Invoice::join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
+       ->join('products', 'products.id', '=', 'sold_items.product_id')
+       ->select(
+            
+            'invoices.date',
+            DB::raw("CONCAT(DAY(invoices.date), '-', LEFT(monthname(invoices.date), 3)) as today"),
+            DB::raw('SUM(products.selling_price * sold_items.quantity) as revenue'),
+            DB::raw('(SUM(products.selling_price * sold_items.quantity) - SUM(products.purchase_price * sold_items.quantity)) as profit'),
+            DB::raw('SUM(sold_items.quantity) as total_product')
+
+        )        
+       ->orderBy('invoices.date')
+       ->groupBy('invoices.date')
+       ->get();
+
+        $chart_val[] = ['Day','Revenue','Profit'];
+        foreach ($everyday as $key => $value) {
+            $chart_val[++$key] = [$value->today, (int)$value->revenue, (int)$value->profit];
+        }
+        $chart_val = json_encode($chart_val);
+
+        $chart_data["everyday"] = $everyday;
+        $chart_data["chart_val"] = $chart_val;
+        
+
+        $pdf = PDF::loadView('downloadChart', $chart_data);
+        $pdf->setPaper('A4', 'portrait');
+        
+
+        return $pdf->stream('GNT-Chart.pdf');
+    }
+
+    public function signup()
+    {
+        return view('signup');
+    }
+
+    public function signupSub(Request $request)
+    {       
+        $request->validate(
+            [
+                'name'=>'required|regex:/^[a-z A-Z.-]+$/',
+                'phone'=>'required|digits:11',
+                'email'=>'required|email',                                    
+                'pass_word'=>'required|min:3',                                 
+                'confirm_password'=>'required|same:pass_word',
+                'address'=>'required',
+                'file' => 'mimes:jpg,jpeg,png,bmp|max:3072',
+            ]
+        );
+
+        $verification = random_int(100000, 999999);
+
+        $users = new User();
+        $users->name = $request->name;
+        $users->phone = $request->phone;
+        $users->email = $request->email;
+        $users->password = Hash::make($request->pass_word);
+        $users->address = $request->address;
+        $users->verification = $verification;
+        if($request->file)
+        {
+            $fileName = 'img'.$request->phone.'.'.$request->file->extension();    
+            $request->file->move(public_path('profile images'), $fileName);
+            $users->image = $fileName;
+        } 
+        $users->save();
+        $id = $users->id;
+
+        $data["id"] = $id;
+        $data["name"] = $request->name;
+        $data["email"] = $request->email;
+        $data["verification"] = $verification;
+
+        Mail::send('MailVerification', $data, function($message)use($data) {       
+            $message->to($data["email"])
+           ->subject("Verify Your Account In GNT Grocery");
+            //->body("hello".$data["name"].". Your verification code is ".$data["verification"]);
+  
+        });
+        
+        $id = encrypt($id);
+        return redirect()->route('verify', compact('id'));
+        
+    }
+
+    public function signin()
+    {
+        return view('signin');
+    }
+
+    public function signinSub(Request $request)
+    {  
+        $request->validate(
+            [
+                'info'=>'required',                                 
+                'pass_word'=>'required|min:3',  
+            ]
+        );
+
+
+        
+        $user = User::where(function($query) use ($request) {
+            $query->where("email", $request->info)
+           ->orWhere("phone", $request->info);
+        })
+       ->first();
+        if($user)
+        {
+            if(Hash::check($request->pass_word, $user->password))
+            {
+                if($user->verification == "verified")
+                {
+                                        
+                    session()->put('id', $user->id);
+                    session()->put('name', $user->name);
+                    session()->put('phone', $user->phone);
+                    session()->put('email', $user->email);
+                    session()->put('usertype', $user->usertype);
+                    session()->put('image', $user->image);
+                    session()->put('address', $user->address);
+
+                    return redirect()->route('allProduct');
+
+
+                    // dd('VERIFIED, PERFECT!');
+                }
+                else
+                {
+                    $id = encrypt($user->id);
+                    return redirect()->route('verify', compact('id'));
+                }
+            }
+            else
+            {
+                dd('password wrong');
+            }
+        }
+        else
+        {
+            dd('user not found!');
+        }
+        
+    }
+
+    public function signout()
+    {
+        session()->flush();
+        return redirect(route('allProduct'));
+    }
+
+    public function verify($id)
+    {
+        $user = User::find(decrypt($id));
+        if($user->verification != "verified")
+        {
+            return view('verify', compact('id'));
+        }
+        else
+        {
+            return redirect(route('allProduct'));
+        }
+        
+    }
+
+    public function verifySub(Request $request)
+    {
+        $user = User::find(decrypt($request->id));
+        $request->validate(
+            [
+                'otp'=>'required|digits:6|in:'.$user->verification,
+            ],
+            [
+                'otp.in'=>'Wrong OTP! Check your mail to validate.'
+            ]
+        );
+        
+        if($user->verification == $request->otp)
+        {
+            $user->verification = "verified";
+            $user->save();
+
+            session()->put('id', $user->id);
+            session()->put('name', $user->name);
+            session()->put('phone', $user->phone);
+            session()->put('email', $user->email);
+            session()->put('usertype', $user->usertype);
+            session()->put('image', $user->image);
+            session()->put('address', $user->address);
+
+            return redirect()->route('allProduct');
+
+            // dd('otp matched! change verification field in DB, take all info in session, then redirect');
+        }
+        else
+        {
+            dd('otp doesnt match');
+        }
+        return redirect()->route('allProduct');
+    }
+
+    public function verifyMail(Request $request)
+    {
+        $user = User::find(decrypt($request->id));
+        
+        if($user)
+        {
+            if($user->verification == $request->otp)
+            {
+                $user->verification = "verified";
+                $user->save();
+                session()->put('id', $user->id);
+                session()->put('name', $user->name);
+                session()->put('phone', $user->phone);
+                session()->put('email', $user->email);
+                session()->put('usertype', $user->usertype);
+                session()->put('image', $user->image);
+                session()->put('address', $user->address);
+
+                return redirect()->route('allProduct');
+
+                
+                // dd('otp matched! change verification field in DB, take all info in session, then redirect');
+            }
+            else
+            {
+                dd('otp doesnt match');
+            }
+        }
+        else
+        {
+            dd('Account not found!');
+        }
+        // return view('verifyMail');
+        // return redirect()->route('allProduct');
+    }
+
+    public function deleteVerifyMail($id)
+    {
+        $user = User::where('id', decrypt($id))->delete();
+                
+        if($user)
+        {
+            dd('Thanks for letting us know. We are sorry for your inconvenience :(');
+        }
+        else
+        {
+            dd('We Already Knew It! :)');
+        }
+        // return view('verifyMail');
+        // return redirect()->route('allProduct');
+    }
+
 }
 
