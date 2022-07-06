@@ -58,3 +58,7 @@ Route::get ('/verify/{id}', 'GroceryController@verify')->name('verify');
 Route::post ('/verify', 'GroceryController@verifySub')->name('verifySub');
 Route::get ('/verifyMail/{id}/{otp}', 'GroceryController@verifyMail')->name('verifyMail');
 Route::get ('/deleteVerifyMail/{id}', 'GroceryController@deleteVerifyMail')->name('deleteVerifyMail');
+
+
+
+Route::get ('/try', 'GroceryController@try')->name('try');

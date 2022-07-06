@@ -71,13 +71,13 @@
                     <a class="nav-link" href="{{route('sellProduct')}}"><i class="bi bi-cart-check-fill"></i> Sell Product &emsp;</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{route('invoices')}}"><i class="bi bi-list-task"></i> Invoices &emsp;</a>
+                    <a class="nav-link" href="{{route('invoices')}}"><i class="bi bi-list-task"></i> Offline Invoices &emsp;</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{route('invoicesDataTable')}}"><i class="bi bi-list-stars"></i> Online Invoices &emsp;</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{route('restockProduct')}}"><i class="bi bi-bag-plus-fill"></i> Restock Product &emsp;</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{route('invoicesDataTable')}}"><i class="bi bi-list-stars"></i> Invoices DataTable &emsp;</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{route('stat')}}"><i class="bi bi-file-bar-graph-fill"></i> Stat &emsp;&emsp;&emsp;&emsp;</a>

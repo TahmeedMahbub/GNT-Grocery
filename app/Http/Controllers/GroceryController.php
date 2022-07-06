@@ -335,8 +335,10 @@ class GroceryController extends Controller
             if(Session()->get('usertype') == "admin")
             {
                 $invoices = Invoice::where('total', '>', 0)
+                ->where('bought_by', 'admin')
                ->orderBy('id', 'DESC')->get();
                 //CHECK PROFITS< ONLY FOR ADMIN
+
                 $profits = Invoice::select(
                     DB::raw('invoices.id, SUM((products.selling_price - products.purchase_price)* sold_items.quantity) as benefit'))
                ->join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
@@ -365,7 +367,8 @@ class GroceryController extends Controller
     {   
         if ($request->ajax()) {
             $invoices = Invoice::where('total', '>', 0)
-           ->orderBy('id', 'DESC')->get();
+            ->where('bought_by', '!=', 'admin')
+            ->orderBy('id', 'DESC')->get();
 
             $x = 0;
 
@@ -442,24 +445,35 @@ class GroceryController extends Controller
     public function invoicesDetails($id)
     {   
 
-        $join_table = Invoice::select('products.name', 'products.selling_price', 'sold_items.quantity', 'invoices.total', 'invoices.created_at', 'invoices.customer_name' )
+        $findInvoice = Invoice::find($id);
+
+       
+       if($findInvoice) //SEARCH IF VALID
+       {
+        $join_table = Invoice::select('products.name', 'products.selling_price', 'sold_items.quantity', 'invoices.total', 'invoices.created_at', 'invoices.customer_name', 'invoices.bought_by' )
        ->join('sold_items', 'invoices.id', '=', 'sold_items.invoice_id')
        ->join('products', 'products.id', '=', 'sold_items.product_id')
        ->where('invoices.id', $id)
        ->get();
-       if(Session()->has('usertype'))
-        {
-            if(Session()->get('usertype') == "admin")
+            if(Session()->has('usertype'))
             {
-                return view('admin.invoiceDetails', compact('join_table', 'id'));
+                if(Session()->get('usertype') == "admin")
+                {
+                    return view('admin.invoiceDetails', compact('join_table', 'id'));
+                }
+                else
+                {
+                    if($join_table[0]->bought_by == Session()->get('id'))
+                    {
+                        $user = User::find(Session()->get('id'));
+                        return view('customer.invoiceDetails', compact('join_table', 'id', 'user'));
+                    }
+                    else{return "Authentication Failed!";}
+                }
             }
-            else
-            {
-                $user = User::find(Session()->get('id'));
-                return view('customer.invoiceDetails', compact('join_table', 'id', 'user'));
-            }
-        }
-        return view('signin');
+            return view('signin');
+       }
+       else{return "Invalid Invoice ID";}
 
     }
 
@@ -555,8 +569,9 @@ class GroceryController extends Controller
 
         )        
        ->orderBy('invoices.date')
-       ->groupBy('invoices.date')
-       ->get();
+       ->groupBy('invoices.date')->get();
+
+       
 
         $total_invoices = Invoice::select(
                 DB::raw('COUNT(id) as total'), 
@@ -828,6 +843,37 @@ class GroceryController extends Controller
         }
         // return view('verifyMail');
         // return redirect()->route('allProduct');
+    }
+
+    public function try()
+    {
+        
+        $array['val'] = 0;
+
+        for($i=0; $i < 1000; $i++)
+        {     
+            
+            $rand = random_int(0001, 1000);
+
+            foreach($array as $arr)
+            {
+                if($arr == $rand)
+                {
+                    $i--;
+                }
+                else
+                {
+                    
+                    $array['val'] = $rand;
+                }
+            }
+        }
+        dd($array);
+        foreach($array as $arr)
+            {
+                echo $arr['val'];
+                
+            }
     }
 
 }

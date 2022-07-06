@@ -1,4 +1,4 @@
-@extends('adminLayout')
+@extends('admin.layout')
 @section('content')
 
 <h2><center>Invoice List (JQuery DataTable)</center></h2><hr>
